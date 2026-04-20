@@ -1,57 +1,87 @@
-# React + TypeScript + Vite
+# CTDP & RSIP 个人稳态重构系统
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+![App Preview](https://img.shields.io/badge/Status-Active-success)
+![Tech Stack](https://img.shields.io/badge/Stack-React%20%7C%20Tailwind%20%7C%20Zustand-blue)
 
-Currently, two official plugins are available:
+这是一个基于[《如何提高自制力？（知乎：edmond）》](https://www.zhihu.com/question/19888447)一文中的硬核方法论所开发的**移动端本地优先 Web App**。
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+它不是一个简单的番茄钟，而是一个将“自制力”问题转化为“交叉学科工程问题”的**个人行为系统重构引擎**。通过将人类的短视行为数学化，利用“神圣座位”、“时延协议（CTDP）”和“递归稳态迭代（RSIP）”，帮助你从底层的微小习惯开始，像搭建多米诺骨牌一样重建人生的秩序与专注力。
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 💡 核心理念与功能映射
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### 1. 链式时延协议 (CTDP) —— 单点专注的维持
+针对“启动困难”和“中途放弃”问题：
+*   **神圣座位仪式 (Ritual)**：每次开始专注前，必须勾选完成前置的仪式（如：清理桌面、深呼吸）。将“进入专注”变成一个有门槛的物理动作。
+*   **专注链条 (Chain)**：用可视化的连击数字，将每一次专注的沉没成本绑定。一旦屈服于诱惑，链条清零，利用人类对“保持纪录”的执念产生巨大的约束力。
+*   **时延对抗 (Delay Protocol)**：专注中产生玩手机的冲动时，点击“我想分心了”，选择 30秒/2分钟/5分钟 的时延。不要求你立刻战胜欲望，而是让你在倒计时中观察冲动，利用切换成本将欲望降级。
+
+### 2. 递归稳态迭代协议 (RSIP) —— 全局生活的重建
+针对“破窗效应”和“系统性崩溃”问题：
+*   **国策库 (Policies)**：将你的生活习惯写成 `IF-THEN` 的强制规则（如：`IF` 晚上 22:30，`THEN` 手机不上床）。
+*   **定式树 (Policy Tree)**：使用可交互的节点画布，将你的国策连成一棵树。父节点（如：早睡）是子节点（如：早起学习）的前提。只有底层稳固，高层才能点亮。
+*   **稳态与崩溃回滚**：当某个国策无法坚持（宣告崩溃）时，该节点及其所有关联的子节点都会退回休眠状态，生动演绎系统性崩塌；系统会引导你分析原因（是动作成本太高还是触发器忘了），并对其进行“降维打击”拆分重组。
+
+### 3. 量化自我交叉分析
+*   **24小时生物钟热力分布**：找出你全天专注胜率最高与最低的时段。
+*   **分心冲动散点图**：量化探索你在专注的第几分钟最容易产生冲动，以及多长的“时延策略”对你最有效。
+*   **体系稳态相关性**：验证“底层国策树的点亮比例”与“每日高层脑力输出时长”之间的正相关性。
+
+---
+
+## 🛠️ 技术栈
+
+*   **框架**: React 18 + TypeScript + Vite
+*   **样式**: Tailwind CSS + Lucide React (图标)
+*   **动画**: Framer Motion
+*   **状态管理**: Zustand
+*   **本地存储**: localforage (IndexedDB) —— **数据完全存储在本地，不上传服务器，保护隐私**
+*   **可视化树**: React Flow
+*   **图表分析**: Recharts
+
+---
+
+## 🚀 本地运行与开发指南
+
+### 1. 安装依赖
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  extends: [
-    // other configs...
-    // Enable lint rules for React
-    reactX.configs['recommended-typescript'],
-    // Enable lint rules for React DOM
-    reactDom.configs.recommended,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### 2. 启动本地开发服务器
+```bash
+npm run dev
 ```
+打开浏览器访问 `http://localhost:5173`。建议在浏览器的开发者工具中切换为**移动端视图 (Mobile View)** 以获得最佳体验。
+
+### 3. 构建生产环境代码
+```bash
+npm run build
+```
+打包后的文件将生成在 `dist` 目录中。
+
+---
+
+## 📱 使用指南 (User Guide)
+
+1.  **制定国策 (Tab 3: 国策)**
+    *   首先进入国策页，从“经典模板”中采用几个简单的习惯（如“夜幕降临”），或者自定义你的 IF-THEN 规则。
+2.  **构建体系 (Tab 2: 体系)**
+    *   进入体系页，点击右下角 `+` 号，将国策添加到画布中。
+    *   通过拖拽节点连线，确立它们之间的前置依赖关系。
+    *   点击节点，如果你的确做到了，选择“点亮”。
+3.  **开始专注 (Tab 1: 专注)**
+    *   输入你要做的事情，选择时长，勾选仪式清单，开始极简倒计时。
+    *   如果产生冲动，**不要直接退出**，点击“我想分心了”，体验一次“时延对抗”。
+4.  **复盘迭代 (Tab 4: 我的)**
+    *   经过几天的使用，来到“我的”页面，查看你的数据交叉分析图表，根据图表反馈，回到“国策树”去调整和优化你的习惯参数。
+
+---
+
+## 🔒 隐私与数据安全
+本项目秉承“本地优先 (Local-First)”的原则。你产生的所有专注时间、失败记录、国策树拓扑结构，均通过 `IndexedDB` **加密存储在你的设备本地**。你可以随时在“我的”页面导出完整的 JSON 数据备份，或一键清除所有痕迹。
+
+---
+
+*“自控力的终极形态，不是咬牙切齿地与欲望搏斗，而是通过精妙的系统设计，让‘做正确的事’成为阻力最小的滑梯。”*
