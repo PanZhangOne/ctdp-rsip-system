@@ -1,14 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Pause, AlertTriangle, Link2, Settings, Star, CheckCircle } from 'lucide-react';
+import { Play, Square, Pause, AlertTriangle, Link2, Settings, Star, CheckCircle, Plus, Trash2, X } from 'lucide-react';
 import { useFocusStore } from '../store/useFocusStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 import { DelayDrawer, cn } from '../components/DelayDrawer';
 import { formatTime } from '../utils/formatTime';
 
 export const FocusPage: React.FC = () => {
   const store = useFocusStore();
+  const settings = useSettingsStore();
   const [taskName, setTaskName] = useState('');
-  const [selectedTime, setSelectedTime] = useState(60 * 60); // Default 60 mins
+  const [selectedTime, setSelectedTime] = useState(settings.defaultFocusDuration);
   const [selectedChain, setSelectedChain] = useState(store.chains[0]?.id || 'default');
   const [isDelayOpen, setIsDelayOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
@@ -20,6 +22,11 @@ export const FocusPage: React.FC = () => {
   const [showRating, setShowRating] = useState(false);
   const [rating, setRating] = useState(0);
   const [pendingStopData, setPendingStopData] = useState<{type: 'success' | 'degrade' | 'fail', elapsed: number} | null>(null);
+
+  // Chains and Settings Drawers State
+  const [showChainsDrawer, setShowChainsDrawer] = useState(false);
+  const [newChainName, setNewChainName] = useState('');
+  const [showSettingsDrawer, setShowSettingsDrawer] = useState(false);
 
   const session = store.currentSession;
   const isRunning = session?.state === 'running';
@@ -78,6 +85,18 @@ export const FocusPage: React.FC = () => {
 
   const activeChain = store.chains.find(c => c.id === (session?.chainId || selectedChain));
 
+  const handleCreateChain = () => {
+    if (newChainName.trim()) {
+      store.createChain(newChainName.trim());
+      setNewChainName('');
+    }
+  };
+
+  const handleUpdateSettings = (duration: number) => {
+    settings.setDefaultFocusDuration(duration);
+    setSelectedTime(duration);
+  };
+
   return (
     <div className="min-h-[100dvh] bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 flex flex-col pt-12 pb-24 px-6 overflow-hidden relative transition-colors">
       {/* Background Ambience */}
@@ -89,14 +108,27 @@ export const FocusPage: React.FC = () => {
         animate={{ y: 0, opacity: 1 }}
         className="flex justify-between items-center mb-12 z-10"
       >
-        <div className="flex items-center space-x-3 bg-white/50 dark:bg-zinc-900/50 backdrop-blur px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-800 transition-colors">
+        <button 
+          onClick={() => !session && setShowChainsDrawer(true)}
+          className={cn(
+            "flex items-center space-x-3 bg-white/50 dark:bg-zinc-900/50 backdrop-blur px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-800 transition-colors",
+            !session && "hover:bg-white dark:hover:bg-zinc-800 cursor-pointer"
+          )}
+        >
           <Link2 size={16} className={activeChain?.currentLength ? 'text-green-500' : 'text-zinc-400 dark:text-zinc-500'} />
-          <span className="text-sm font-medium">{activeChain?.name}</span>
+          <span className="text-sm font-medium">{activeChain?.name || '选择专注链'}</span>
           <span className="bg-zinc-100 dark:bg-zinc-800 text-xs px-2 py-0.5 rounded-md tabular-nums font-mono transition-colors">
-            {activeChain?.currentLength} 连
+            {activeChain?.currentLength || 0} 连
           </span>
-        </div>
-        <button className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors">
+        </button>
+        <button 
+          onClick={() => !session && setShowSettingsDrawer(true)}
+          disabled={!!session}
+          className={cn(
+            "p-2 text-zinc-500 dark:text-zinc-400 transition-colors",
+            !session ? "hover:text-zinc-900 dark:hover:text-white" : "opacity-50"
+          )}
+        >
           <Settings size={20} />
         </button>
       </motion.div>
@@ -337,6 +369,160 @@ export const FocusPage: React.FC = () => {
               >
                 保存记录并更新链条
               </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Chains Drawer */}
+      <AnimatePresence>
+        {showChainsDrawer && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowChainsDrawer(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-colors"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl flex flex-col transition-colors pb-safe max-h-[80vh]"
+            >
+              <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6 shrink-0" />
+              
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold">切换专注链</h3>
+                <button onClick={() => setShowChainsDrawer(false)} className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="overflow-y-auto space-y-3 mb-6">
+                {store.chains.map(chain => (
+                  <div 
+                    key={chain.id}
+                    className={cn(
+                      "flex items-center justify-between p-4 rounded-xl border transition-colors cursor-pointer group",
+                      selectedChain === chain.id
+                        ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-900"
+                        : "bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                    )}
+                    onClick={() => {
+                      setSelectedChain(chain.id);
+                      setShowChainsDrawer(false);
+                    }}
+                  >
+                    <div className="flex items-center space-x-3">
+                      <div className={cn(
+                        "w-4 h-4 rounded-full border-2 flex items-center justify-center",
+                        selectedChain === chain.id ? "border-blue-500" : "border-zinc-300 dark:border-zinc-600"
+                      )}>
+                        {selectedChain === chain.id && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
+                      </div>
+                      <div>
+                        <div className={cn(
+                          "font-medium text-sm",
+                          selectedChain === chain.id ? "text-blue-700 dark:text-blue-400" : "text-zinc-900 dark:text-zinc-100"
+                        )}>{chain.name}</div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                          当前 {chain.currentLength} 连 • 最高 {chain.maxLength} 连
+                        </div>
+                      </div>
+                    </div>
+                    {store.chains.length > 1 && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (selectedChain === chain.id) {
+                            setSelectedChain(store.chains.find(c => c.id !== chain.id)?.id || '');
+                          }
+                          store.deleteChain(chain.id);
+                        }}
+                        className="p-2 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800 shrink-0">
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    placeholder="新建链条名称 (如: 算法题)"
+                    value={newChainName}
+                    onChange={(e) => setNewChainName(e.target.value)}
+                    className="flex-1 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 text-sm transition-colors"
+                  />
+                  <button 
+                    onClick={handleCreateChain}
+                    disabled={!newChainName.trim()}
+                    className="px-4 bg-blue-600 text-white rounded-xl font-medium disabled:opacity-50 transition-colors"
+                  >
+                    <Plus size={20} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Settings Drawer */}
+      <AnimatePresence>
+        {showSettingsDrawer && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowSettingsDrawer(false)}
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-colors"
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl flex flex-col transition-colors pb-safe"
+            >
+              <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6 shrink-0" />
+              
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-xl font-semibold">专注偏好设置</h3>
+                <button onClick={() => setShowSettingsDrawer(false)} className="p-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">默认专注时长</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[25, 45, 60, 90, 120].map(m => (
+                      <button
+                        key={m}
+                        onClick={() => handleUpdateSettings(m * 60)}
+                        className={cn(
+                          "py-3 rounded-xl border text-sm transition-colors",
+                          settings.defaultFocusDuration === m * 60
+                            ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-400 font-medium"
+                            : "bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        )}
+                      >
+                        {m} 分钟
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Future settings can go here */}
+                
+              </div>
             </motion.div>
           </>
         )}

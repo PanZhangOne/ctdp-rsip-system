@@ -67,6 +67,8 @@ interface FocusState {
   
   // Chain Actions
   createChain: (name: string) => void;
+  deleteChain: (id: string) => void;
+  updateChainName: (id: string, name: string) => void;
 }
 
 export const useFocusStore = create<FocusState>()(
@@ -198,6 +200,18 @@ export const useFocusStore = create<FocusState>()(
       createChain: (name) => {
         set((state) => ({
           chains: [...state.chains, { id: crypto.randomUUID(), name, currentLength: 0, maxLength: 0 }]
+        }));
+      },
+
+      deleteChain: (id) => {
+        set((state) => ({
+          chains: state.chains.filter(c => c.id !== id)
+        }));
+      },
+
+      updateChainName: (id, name) => {
+        set((state) => ({
+          chains: state.chains.map(c => c.id === id ? { ...c, name } : c)
         }));
       }
     }),

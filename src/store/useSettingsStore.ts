@@ -19,6 +19,8 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 interface SettingsState {
   theme: ThemeMode;
   setTheme: (theme: ThemeMode) => void;
+  defaultFocusDuration: number;
+  setDefaultFocusDuration: (duration: number) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -26,6 +28,8 @@ export const useSettingsStore = create<SettingsState>()(
     (set) => ({
       theme: 'system',
       setTheme: (theme) => set({ theme }),
+      defaultFocusDuration: 60 * 60,
+      setDefaultFocusDuration: (duration) => set({ defaultFocusDuration: duration }),
     }),
     {
       name: 'settings-storage',
