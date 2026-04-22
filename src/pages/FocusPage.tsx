@@ -55,8 +55,7 @@ export const FocusPage: React.FC = () => {
           setElapsed(prev => prev + 1);
         }, 1000);
       } else {
-        // Paused or finished state, sync exact duration from store
-        setElapsed(session.actualDuration);
+        // Paused or finished state
         if (timerRef.current) clearInterval(timerRef.current);
       }
     } else {
@@ -66,7 +65,7 @@ export const FocusPage: React.FC = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [session?.id, session?.state]);
+  }, [session?.id, isRunning]);
 
   const handleStart = () => {
     if (!taskName.trim()) return;
@@ -204,40 +203,46 @@ export const FocusPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center p-8 safe-area-px"
-            style={{ writingMode: 'vertical-rl' }}
+            className="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center safe-area-px overflow-hidden"
           >
-            <div className="w-full h-full flex flex-col items-center justify-between py-12" style={{ transform: 'rotate(180deg)' }}>
-              
-              <div className="w-full flex items-center justify-between px-12">
+            {/* The container that gets rotated 90 degrees */}
+            <div 
+              className="flex flex-col items-center justify-between"
+              style={{
+                width: '100vh',
+                height: '100vw',
+                transform: 'rotate(90deg)',
+                padding: '2rem 3rem'
+              }}
+            >
+              <div className="w-full flex items-center justify-between">
                 <button
                   onClick={() => setIsLandscape(false)}
-                  className="p-4 rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-all"
-                  style={{ writingMode: 'horizontal-tb' }}
+                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-all"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
 
-                <h2 className="text-zinc-500 text-xl tracking-widest font-medium" style={{ writingMode: 'horizontal-tb' }}>
+                <h2 className="text-zinc-500 text-lg tracking-widest font-medium">
                   {session.taskId}
                 </h2>
                 
-                <div className="w-12" /> {/* Spacer */}
+                <div className="w-10" /> {/* Spacer */}
               </div>
 
               <div className="flex-1 flex items-center justify-center">
-                <div className="text-[140px] leading-none font-extralight tracking-tighter tabular-nums text-white/90" style={{ writingMode: 'horizontal-tb' }}>
+                <div className="text-[120px] sm:text-[140px] leading-none font-extralight tracking-tighter tabular-nums text-white/90">
                   {formatTime(session.plannedDuration - elapsed > 0 ? session.plannedDuration - elapsed : 0)}
                 </div>
               </div>
               
-              <div className="flex space-x-8" style={{ writingMode: 'horizontal-tb' }}>
+              <div className="flex space-x-6 w-full justify-center max-w-lg mx-auto">
                 <button
                   onClick={() => setIsDelayOpen(true)}
-                  className="px-10 py-5 rounded-full bg-white/10 border border-white/20 text-orange-400 hover:bg-white/20 flex justify-center items-center space-x-3 backdrop-blur-md transition-all"
+                  className="flex-1 py-4 rounded-full bg-white/10 border border-white/20 text-orange-400 hover:bg-white/20 flex justify-center items-center space-x-2 backdrop-blur-md transition-all"
                 >
-                  <AlertTriangle size={24} />
-                  <span className="font-medium text-xl">我想分心了</span>
+                  <AlertTriangle size={20} />
+                  <span className="font-medium text-lg">我想分心了</span>
                 </button>
 
                 <button
@@ -247,14 +252,14 @@ export const FocusPage: React.FC = () => {
                     handleStop(isSuccess ? 'success' : isDegrade ? 'degrade' : 'fail');
                   }}
                   className={cn(
-                    "px-10 py-5 rounded-full flex justify-center items-center transition-all duration-300 border backdrop-blur-md",
+                    "flex-1 py-4 rounded-full flex justify-center items-center transition-all duration-300 border backdrop-blur-md",
                     elapsed >= session.plannedDuration 
                       ? "bg-green-500/80 text-white shadow-[0_8px_20px_rgba(34,197,94,0.3)] border-green-400/50" 
                       : "bg-white/10 border-red-500/30 text-red-500 hover:bg-red-500/20"
                   )}
                 >
-                  <Square size={24} className={elapsed >= session.plannedDuration ? "fill-current mr-3" : "mr-3"} />
-                  <span className="font-medium text-xl">停止</span>
+                  <Square size={20} className={elapsed >= session.plannedDuration ? "fill-current mr-2" : "mr-2"} />
+                  <span className="font-medium text-lg">停止</span>
                 </button>
               </div>
             </div>
