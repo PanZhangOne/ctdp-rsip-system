@@ -17,7 +17,7 @@ export const ProfilePage = () => {
   const { theme, setTheme } = useSettingsStore();
   const { historySessions, historyUrges, chains } = useFocusStore();
   const { policies } = usePolicyStore();
-  const { nodes, collapseLogs } = useSystemStore();
+  const { nodes, collapseLogs, litLogs } = useSystemStore();
   const { goals, projects, tasks } = useGoalStore();
   
   const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -63,20 +63,23 @@ export const ProfilePage = () => {
 
     const collapseCount = collapseLogs.filter(l => goalPolicyIds.includes(l.policyId)).length;
 
-    const litCount = nodes.filter(n => {
-      if (n.data.status !== 'LIT') return false;
-      const policy = policyById.get(n.data.policyId);
-      if (!policy) return false;
-      const goalId = policy.goalId || (policy.projectId ? projectById.get(policy.projectId)?.goalId : undefined);
-      return goalId === g.id;
-    }).length;
+    // Use litLogs instead of current nodes status to count total lit events
+    const litCount = (litLogs || []).filter(l => goalPolicyIds.includes(l.policyId)).length;
+
+    // Calculate lit events in the past 7 days
+    const now = Date.now();
+    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
+    const recentLitCount = (litLogs || []).filter(l => 
+      goalPolicyIds.includes(l.policyId) && l.timestamp >= sevenDaysAgo
+    ).length;
 
     return {
       goal: g,
       focusSeconds,
       focusSessions: focusSessions.length,
       collapseCount,
-      litCount
+      litCount,
+      recentLitCount
     };
   });
 
@@ -176,7 +179,7 @@ export const ProfilePage = () => {
             <div className="space-y-4">
               {goalSummaries
                 .sort((a, b) => (b.focusSeconds + b.litCount * 60) - (a.focusSeconds + a.litCount * 60))
-                .map(({ goal, focusSeconds, focusSessions, collapseCount, litCount }) => (
+                .map(({ goal, focusSeconds, focusSessions, collapseCount, litCount, recentLitCount }) => (
                   <div key={goal.id} className="glass-card p-5">
                     <div className="flex items-start justify-between">
                       <div>
@@ -198,12 +201,17 @@ export const ProfilePage = () => {
                         <div className="text-xl font-medium tabular-nums">{focusSessions}</div>
                       </div>
 
-                      <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3">
+                      <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3 relative overflow-hidden">
                         <div className="flex items-center space-x-2 text-zinc-500 dark:text-zinc-400 text-xs mb-1">
                           <CheckCircle2 size={14} className="text-green-500" />
-                          <span>点亮节点</span>
+                          <span>累计点亮</span>
                         </div>
                         <div className="text-xl font-medium tabular-nums">{litCount}</div>
+                        {recentLitCount > 0 && (
+                          <div className="absolute right-2 bottom-2 text-[10px] font-medium text-green-600 bg-green-100/80 px-1.5 py-0.5 rounded-md">
+                            近7天 +{recentLitCount}
+                          </div>
+                        )}
                       </div>
 
                       <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3">

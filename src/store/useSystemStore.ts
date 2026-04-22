@@ -26,6 +26,13 @@ export interface CollapseLog {
   action: string;
 }
 
+export interface NodeLitLog {
+  id: string;
+  timestamp: number;
+  nodeId: string;
+  policyId: string;
+}
+
 export interface PolicyNodeData extends Record<string, unknown> {
   policyId: string;
   title: string;
@@ -39,6 +46,7 @@ interface SystemState {
   nodes: PolicyNode[];
   edges: Edge[];
   collapseLogs: CollapseLog[];
+  litLogs: NodeLitLog[];
   
   onNodesChange: (changes: NodeChange<PolicyNode>[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
@@ -57,6 +65,7 @@ export const useSystemStore = create<SystemState>()(
       nodes: [],
       edges: [],
       collapseLogs: [],
+      litLogs: [],
       
       onNodesChange: (changes) => {
         set({
@@ -83,21 +92,39 @@ export const useSystemStore = create<SystemState>()(
       },
 
       updateNodeStatus: (nodeId, status) => {
-        set((state) => ({
-          nodes: state.nodes.map(n => {
+        set((state) => {
+          let newLitLog: NodeLitLog | null = null;
+          
+          const newNodes = state.nodes.map(n => {
             if (n.id === nodeId) {
+              const isNewlyLit = status === 'LIT' && n.data.status !== 'LIT';
+              
+              if (isNewlyLit) {
+                newLitLog = {
+                  id: crypto.randomUUID(),
+                  timestamp: Date.now(),
+                  nodeId: n.id,
+                  policyId: n.data.policyId as string || 'unknown'
+                };
+              }
+
               return {
                 ...n,
                 data: {
                   ...n.data,
                   status,
-                  litDate: status === 'LIT' && n.data.status !== 'LIT' ? Date.now() : n.data.litDate
+                  litDate: isNewlyLit ? Date.now() : n.data.litDate
                 }
               };
             }
             return n;
-          })
-        }));
+          });
+
+          return {
+            nodes: newNodes,
+            litLogs: newLitLog ? [newLitLog, ...(state.litLogs || [])] : state.litLogs
+          };
+        });
       },
 
       collapseNodeAndDescendants: (nodeId, reason = '未知原因', action = '无记录') => {
