@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Pause, AlertTriangle, Link2, Settings, Star, CheckCircle, Plus, Trash2, X } from 'lucide-react';
+import { Play, Square, Pause, AlertTriangle, Link2, Settings, Star, CheckCircle, Plus, Trash2, X, MonitorPlay } from 'lucide-react';
 import { useFocusStore } from '../store/useFocusStore';
 import { useSettingsStore } from '../store/useSettingsStore';
-import { useOrientation } from '../hooks/useOrientation';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { DelayDrawer, cn } from '../components/DelayDrawer';
 import { formatTime } from '../utils/formatTime';
@@ -35,7 +34,7 @@ export const FocusPage: React.FC = () => {
   const isPaused = session?.state === 'paused';
   
   // Landscape & Wake Lock logic
-  const isLandscape = useOrientation();
+  const [isLandscape, setIsLandscape] = useState(false);
   useWakeLock(!!session && isLandscape);
   
   const timerRef = useRef<number | null>(null);
@@ -94,6 +93,7 @@ export const FocusPage: React.FC = () => {
     setRating(0);
     setPendingStopData(null);
     setElapsed(0);
+    setIsLandscape(false);
   };
 
   const activeChain = store.chains.find(c => c.id === (session?.chainId || selectedChain));
@@ -204,20 +204,37 @@ export const FocusPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-40 bg-zinc-950 flex items-center justify-center p-8 landscape-view safe-area-px"
+            className="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center p-8 safe-area-px"
+            style={{ writingMode: 'vertical-rl' }}
           >
-            <div className="w-full max-w-5xl flex items-center justify-between space-x-12">
-              <div className="flex-1 flex flex-col justify-center">
-                <h2 className="text-zinc-500 text-xl sm:text-2xl mb-2 sm:mb-6 tracking-wide font-medium">{session.taskId}</h2>
-                <div className="text-[120px] sm:text-[160px] leading-none font-extralight tracking-tighter tabular-nums text-white/90">
+            <div className="w-full h-full flex flex-col items-center justify-between py-12" style={{ transform: 'rotate(180deg)' }}>
+              
+              <div className="w-full flex items-center justify-between px-12">
+                <button
+                  onClick={() => setIsLandscape(false)}
+                  className="p-4 rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-all"
+                  style={{ writingMode: 'horizontal-tb' }}
+                >
+                  <X size={24} />
+                </button>
+
+                <h2 className="text-zinc-500 text-xl tracking-widest font-medium" style={{ writingMode: 'horizontal-tb' }}>
+                  {session.taskId}
+                </h2>
+                
+                <div className="w-12" /> {/* Spacer */}
+              </div>
+
+              <div className="flex-1 flex items-center justify-center">
+                <div className="text-[140px] leading-none font-extralight tracking-tighter tabular-nums text-white/90" style={{ writingMode: 'horizontal-tb' }}>
                   {formatTime(session.plannedDuration - elapsed > 0 ? session.plannedDuration - elapsed : 0)}
                 </div>
               </div>
               
-              <div className="w-64 flex flex-col space-y-6 shrink-0">
+              <div className="flex space-x-8" style={{ writingMode: 'horizontal-tb' }}>
                 <button
                   onClick={() => setIsDelayOpen(true)}
-                  className="py-6 rounded-3xl bg-white/10 border border-white/20 text-orange-400 hover:bg-white/20 flex justify-center items-center space-x-3 backdrop-blur-md transition-all"
+                  className="px-10 py-5 rounded-full bg-white/10 border border-white/20 text-orange-400 hover:bg-white/20 flex justify-center items-center space-x-3 backdrop-blur-md transition-all"
                 >
                   <AlertTriangle size={24} />
                   <span className="font-medium text-xl">我想分心了</span>
@@ -230,7 +247,7 @@ export const FocusPage: React.FC = () => {
                     handleStop(isSuccess ? 'success' : isDegrade ? 'degrade' : 'fail');
                   }}
                   className={cn(
-                    "py-6 rounded-3xl flex justify-center items-center transition-all duration-300 border backdrop-blur-md",
+                    "px-10 py-5 rounded-full flex justify-center items-center transition-all duration-300 border backdrop-blur-md",
                     elapsed >= session.plannedDuration 
                       ? "bg-green-500/80 text-white shadow-[0_8px_20px_rgba(34,197,94,0.3)] border-green-400/50" 
                       : "bg-white/10 border-red-500/30 text-red-500 hover:bg-red-500/20"
@@ -256,7 +273,7 @@ export const FocusPage: React.FC = () => {
               <div className="text-[100px] leading-none font-extralight tracking-tighter tabular-nums mb-4 text-gradient">
                 {formatTime(session.plannedDuration - elapsed > 0 ? session.plannedDuration - elapsed : 0)}
               </div>
-              <div className="flex items-center justify-center space-x-2 text-blue-500 text-sm font-medium glass-panel px-4 py-1.5 rounded-full mx-auto w-fit">
+              <div className="flex items-center justify-center space-x-2 text-blue-500 text-sm font-medium glass-panel px-4 py-1.5 rounded-full mx-auto w-fit mb-8">
                 <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
                 <span>专注中</span>
               </div>
@@ -266,7 +283,15 @@ export const FocusPage: React.FC = () => {
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] border-[0.5px] border-blue-500/20 dark:border-blue-500/10 rounded-full pointer-events-none" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] border-[0.5px] border-zinc-300/30 dark:border-zinc-800/30 rounded-full pointer-events-none" />
 
-            <div className="w-full max-w-sm space-y-6">
+            <div className="w-full max-w-sm space-y-6 z-10">
+              <button
+                onClick={() => setIsLandscape(true)}
+                className="w-full py-4 rounded-3xl glass-button text-blue-600 dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 flex justify-center items-center space-x-2"
+              >
+                <MonitorPlay size={18} />
+                <span className="font-medium">进入沉浸横屏</span>
+              </button>
+
               <button
                 onClick={() => setIsDelayOpen(true)}
                 className="w-full py-4 rounded-3xl glass-button border-orange-500/20 text-orange-500 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 flex justify-center items-center space-x-2"
