@@ -169,6 +169,7 @@ const SystemPageContent = () => {
           nodeTypes={nodeTypes}
           onNodeClick={handleNodeClick}
           fitView
+          proOptions={{ hideAttribution: true }}
           className="bg-zinc-50 dark:bg-black transition-colors"
           colorMode={document.documentElement.classList.contains('dark') ? 'dark' : 'light'}
         >
