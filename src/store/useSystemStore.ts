@@ -17,6 +17,15 @@ const storage = {
 
 export type NodeStatus = 'UNLIT' | 'LIT' | 'COLLAPSED';
 
+export interface CollapseLog {
+  id: string;
+  timestamp: number;
+  nodeId: string;
+  policyId: string;
+  reason: string;
+  action: string;
+}
+
 export interface PolicyNodeData extends Record<string, unknown> {
   policyId: string;
   title: string;
@@ -29,6 +38,7 @@ export type PolicyNode = Node<PolicyNodeData>;
 interface SystemState {
   nodes: PolicyNode[];
   edges: Edge[];
+  collapseLogs: CollapseLog[];
   
   onNodesChange: (changes: NodeChange<PolicyNode>[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
@@ -38,7 +48,7 @@ interface SystemState {
   updateNodeStatus: (nodeId: string, status: NodeStatus) => void;
   
   // Collapse handling
-  collapseNodeAndDescendants: (nodeId: string) => void;
+  collapseNodeAndDescendants: (nodeId: string, reason?: string, action?: string) => void;
 }
 
 export const useSystemStore = create<SystemState>()(
@@ -46,6 +56,7 @@ export const useSystemStore = create<SystemState>()(
     (set, get) => ({
       nodes: [],
       edges: [],
+      collapseLogs: [],
       
       onNodesChange: (changes) => {
         set({
@@ -89,10 +100,11 @@ export const useSystemStore = create<SystemState>()(
         }));
       },
 
-      collapseNodeAndDescendants: (nodeId) => {
+      collapseNodeAndDescendants: (nodeId, reason = '未知原因', action = '无记录') => {
         const state = get();
         const edges = state.edges;
         const nodesToCollapse = new Set<string>([nodeId]);
+        const targetNode = state.nodes.find(n => n.id === nodeId);
         
         // Find all descendants recursively
         let added = true;
@@ -105,6 +117,15 @@ export const useSystemStore = create<SystemState>()(
             }
           });
         }
+
+        const newLog: CollapseLog = {
+          id: crypto.randomUUID(),
+          timestamp: Date.now(),
+          nodeId,
+          policyId: targetNode?.data.policyId as string || 'unknown',
+          reason,
+          action
+        };
 
         set((state) => ({
           nodes: state.nodes.map(n => {
@@ -119,7 +140,8 @@ export const useSystemStore = create<SystemState>()(
               };
             }
             return n;
-          })
+          }),
+          collapseLogs: [newLog, ...(state.collapseLogs || [])]
         }));
       }
     }),

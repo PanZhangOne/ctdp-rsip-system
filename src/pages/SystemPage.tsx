@@ -62,12 +62,12 @@ const SystemPageContent = () => {
     setIsCollapseDialogOpen(true);
   };
 
-  const confirmCollapse = (reason: string) => {
+  const confirmCollapse = (reason: string, action: string) => {
     if (selectedNode) {
-      collapseNodeAndDescendants(selectedNode.id);
+      collapseNodeAndDescendants(selectedNode.id, reason, action);
       
       // If the reason implies policy needs tuning, we can redirect or show a prompt
-      if (reason === '动作成本太高' || reason === '触发器忘了') {
+      if (action === '修改国策' || action === '拆分国策') {
         // Navigate to policies page to edit the specific policy
         navigate('/policies');
       } else {
@@ -359,7 +359,7 @@ const SystemPageContent = () => {
                 ].map(reason => (
                   <button 
                     key={reason.text}
-                    onClick={() => confirmCollapse(reason.text)}
+                    onClick={() => confirmCollapse(reason.text, reason.action)}
                     className="w-full text-left px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:border-red-500 dark:hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-zinc-700 dark:text-zinc-300 flex justify-between items-center group"
                   >
                     <div>

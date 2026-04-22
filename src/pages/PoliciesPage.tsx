@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Clock, MapPin, Activity, Trash2, CheckCircle2 } from 'lucide-react';
+import { Plus, X, Clock, MapPin, Activity, Trash2, CheckCircle2, History } from 'lucide-react';
 import { usePolicyStore, TEMPLATE_POLICIES, Policy } from '../store/usePolicyStore';
+import { useSystemStore, CollapseLog } from '../store/useSystemStore';
 import { cn } from '../components/DelayDrawer';
 
-const PolicyCard = ({ policy, onEdit, onDelete, onToggle }: { 
+const PolicyCard = ({ policy, onEdit, onDelete, onToggle, logs = [] }: { 
   policy: Policy, 
   onEdit?: (p: Policy) => void,
   onDelete?: (id: string) => void,
-  onToggle?: (id: string) => void 
+  onToggle?: (id: string) => void,
+  logs?: CollapseLog[]
 }) => {
+  const [showLogs, setShowLogs] = useState(false);
+
   return (
     <div className={cn(
       "glass-card p-5 transition-all duration-300 group",
@@ -58,15 +62,61 @@ const PolicyCard = ({ policy, onEdit, onDelete, onToggle }: {
         </div>
       )}
 
-      {(onEdit || onDelete) && (
-        <div className="mt-5 pt-4 border-t border-zinc-200/50 dark:border-zinc-700/50 flex justify-end space-x-4">
-          {onDelete && (
-            <button onClick={() => onDelete(policy.id)} className="text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-full transition-all">
-              <Trash2 size={18} />
-            </button>
-          )}
+      {(onEdit || onDelete || logs.length > 0) && (
+        <div className="mt-5 pt-4 border-t border-zinc-200/50 dark:border-zinc-700/50 flex justify-between items-center space-x-4">
+          <div className="flex-1">
+            {logs.length > 0 && (
+              <button 
+                onClick={() => setShowLogs(!showLogs)}
+                className="flex items-center space-x-1.5 text-xs font-medium text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-3 py-1.5 rounded-full hover:bg-orange-100 dark:hover:bg-orange-900/40 transition-colors"
+              >
+                <History size={14} />
+                <span>{logs.length} 次崩溃记录</span>
+              </button>
+            )}
+          </div>
+          <div className="flex items-center space-x-4">
+            {onDelete && (
+              <button onClick={() => onDelete(policy.id)} className="text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-full transition-all">
+                <Trash2 size={18} />
+              </button>
+            )}
+          </div>
         </div>
       )}
+
+      {/* Collapse Logs Dropdown */}
+      <AnimatePresence>
+        {showLogs && logs.length > 0 && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 space-y-3 pt-2">
+              {logs.map((log, idx) => (
+                <div key={log.id} className="bg-zinc-50 dark:bg-zinc-800/50 rounded-xl p-3 border border-zinc-200/50 dark:border-zinc-700/50 text-sm">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="font-medium text-zinc-700 dark:text-zinc-300">#{logs.length - idx} 崩溃复盘</span>
+                    <span className="text-xs text-zinc-400 font-mono">{new Date(log.timestamp).toLocaleDateString()}</span>
+                  </div>
+                  <div className="space-y-1.5">
+                    <div className="flex items-start">
+                      <span className="text-zinc-400 w-12 shrink-0">原因：</span>
+                      <span className="text-zinc-700 dark:text-zinc-300">{log.reason}</span>
+                    </div>
+                    <div className="flex items-start">
+                      <span className="text-zinc-400 w-12 shrink-0">迭代：</span>
+                      <span className="text-orange-600 dark:text-orange-400 font-medium">{log.action}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
@@ -102,6 +152,7 @@ const TemplateCard = ({ template, onAdopt }: { template: Policy, onAdopt: (id: s
 
 export const PoliciesPage = () => {
   const store = usePolicyStore();
+  const systemStore = useSystemStore();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<Partial<Policy>>({ isActive: true });
   const [activeTab, setActiveTab] = useState<'my' | 'templates'>('my');
@@ -191,6 +242,7 @@ export const PoliciesPage = () => {
                     policy={policy} 
                     onDelete={store.deletePolicy}
                     onToggle={store.togglePolicyActive}
+                    logs={systemStore.collapseLogs?.filter(log => log.policyId === policy.id) || []}
                   />
                 ))
               )}
