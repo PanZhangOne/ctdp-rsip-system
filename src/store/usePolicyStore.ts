@@ -20,6 +20,8 @@ export interface Policy {
   conditionIf: string;
   actionThen: string;
   reminderTime?: string;
+  goalId?: string;
+  projectId?: string;
   isTemplate: boolean;
   isActive: boolean;
   createdAt: number;

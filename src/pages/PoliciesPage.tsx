@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, X, Clock, MapPin, Activity, Trash2, CheckCircle2, History } from 'lucide-react';
 import { usePolicyStore, TEMPLATE_POLICIES, Policy } from '../store/usePolicyStore';
 import { useSystemStore, CollapseLog } from '../store/useSystemStore';
+import { useGoalStore } from '../store/useGoalStore';
 import { cn } from '../components/DelayDrawer';
 
 const PolicyCard = ({ policy, onEdit, onDelete, onToggle, logs = [] }: { 
@@ -153,6 +154,7 @@ const TemplateCard = ({ template, onAdopt }: { template: Policy, onAdopt: (id: s
 export const PoliciesPage = () => {
   const store = usePolicyStore();
   const systemStore = useSystemStore();
+  const goalStore = useGoalStore();
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<Partial<Policy>>({ isActive: true });
   const [activeTab, setActiveTab] = useState<'my' | 'templates'>('my');
@@ -166,6 +168,8 @@ export const PoliciesPage = () => {
       actionThen: editingPolicy.actionThen,
       reminderTime: editingPolicy.reminderTime,
       isActive: editingPolicy.isActive ?? true,
+      goalId: editingPolicy.goalId,
+      projectId: editingPolicy.projectId,
     });
     
     setIsEditorOpen(false);
@@ -357,6 +361,43 @@ export const PoliciesPage = () => {
                     onChange={e => setEditingPolicy(p => ({ ...p, reminderTime: e.target.value }))}
                     className="w-full bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors color-scheme-light dark:color-scheme-dark backdrop-blur-md"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">关联目标 (可选)</label>
+                  <div className="glass-card p-3 space-y-3">
+                    <select
+                      value={editingPolicy.goalId || ''}
+                      onChange={(e) => {
+                        const goalId = e.target.value || undefined;
+                        setEditingPolicy(p => ({ ...p, goalId, projectId: undefined }));
+                      }}
+                      className="w-full bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors backdrop-blur-md"
+                    >
+                      <option value="">不关联</option>
+                      {goalStore.goals.map(g => (
+                        <option key={g.id} value={g.id}>{g.title}</option>
+                      ))}
+                    </select>
+
+                    <select
+                      value={editingPolicy.projectId || ''}
+                      disabled={!editingPolicy.goalId}
+                      onChange={(e) => {
+                        const projectId = e.target.value || undefined;
+                        setEditingPolicy(p => ({ ...p, projectId }));
+                      }}
+                      className={cn(
+                        "w-full bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors backdrop-blur-md",
+                        !editingPolicy.goalId && "opacity-50"
+                      )}
+                    >
+                      <option value="">不关联项目</option>
+                      {goalStore.projects.filter(p => p.goalId === editingPolicy.goalId).map(p => (
+                        <option key={p.id} value={p.id}>{p.title}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <button 

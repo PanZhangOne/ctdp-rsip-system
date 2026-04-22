@@ -1,21 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Square, Pause, AlertTriangle, Link2, Settings, Star, CheckCircle, Plus, Trash2, X, MonitorPlay } from 'lucide-react';
+import { Play, Square, Pause, AlertTriangle, Link2, Settings, Star, CheckCircle, Plus, Trash2, X, MonitorPlay, Target } from 'lucide-react';
 import { useFocusStore } from '../store/useFocusStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useWakeLock } from '../hooks/useWakeLock';
 import { DelayDrawer, cn } from '../components/DelayDrawer';
 import { formatTime } from '../utils/formatTime';
+import { useGoalStore, TaskMeta } from '../store/useGoalStore';
+import { GoalPickerDrawer } from '../components/GoalPickerDrawer';
 
 export const FocusPage: React.FC = () => {
   const store = useFocusStore();
   const settings = useSettingsStore();
+  const goalStore = useGoalStore();
   const [taskName, setTaskName] = useState('');
   const [selectedTime, setSelectedTime] = useState(settings.defaultFocusDuration);
   const [selectedChain, setSelectedChain] = useState(store.chains[0]?.id || 'default');
   const [isDelayOpen, setIsDelayOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const [clockText, setClockText] = useState('');
+  const [isGoalPickerOpen, setIsGoalPickerOpen] = useState(false);
+  const [taskMeta, setTaskMeta] = useState<TaskMeta>(goalStore.selected || {});
 
   // Ritual and Post-Rating State
   const [showRitual, setShowRitual] = useState(false);
@@ -103,7 +108,9 @@ export const FocusPage: React.FC = () => {
 
   const confirmRitualAndStart = () => {
     setShowRitual(false);
-    store.startSession(taskName, selectedTime, selectedChain);
+    const meta = Object.keys(taskMeta).length === 0 ? undefined : taskMeta;
+    store.startSession(taskName, selectedTime, selectedChain, meta);
+    goalStore.setSelected(taskMeta);
     setRitualChecks([false, false, false]);
   };
 
@@ -126,6 +133,15 @@ export const FocusPage: React.FC = () => {
   };
 
   const activeChain = store.chains.find(c => c.id === (session?.chainId || selectedChain));
+
+  const goalLabel = (() => {
+    const meta = session?.taskMeta || taskMeta;
+    if (!meta?.goalId) return '未关联目标';
+    const goal = goalStore.goals.find(g => g.id === meta.goalId)?.title;
+    const project = meta.projectId ? goalStore.projects.find(p => p.id === meta.projectId)?.title : undefined;
+    const task = meta.taskId ? goalStore.tasks.find(t => t.id === meta.taskId)?.title : undefined;
+    return [goal, project, task].filter(Boolean).join(' / ') || '未关联目标';
+  })();
 
   useEffect(() => {
     if (!isLandscape) return;
@@ -211,6 +227,19 @@ export const FocusPage: React.FC = () => {
                 />
               </div>
 
+              <button
+                onClick={() => setIsGoalPickerOpen(true)}
+                className="w-full glass-button rounded-2xl px-4 py-3 flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-2">
+                  <Target size={16} className="text-blue-500" />
+                  <span className="text-sm font-medium">关联目标</span>
+                </div>
+                <span className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[60%]">
+                  {goalLabel}
+                </span>
+              </button>
+
               <div className="grid grid-cols-3 gap-3">
                 {[25, 45, 60].map(m => (
                   <button
@@ -271,6 +300,7 @@ export const FocusPage: React.FC = () => {
                 <div className="flex flex-col items-center">
                   <div className="text-zinc-500 text-xs tracking-widest font-medium">{clockText}</div>
                   <h2 className="text-white/80 text-base tracking-wide font-medium mt-1 max-w-[70vw] truncate">{session.taskId}</h2>
+                  <div className="text-zinc-500 text-xs mt-1 max-w-[70vw] truncate">{goalLabel}</div>
                 </div>
 
                 <div className="w-10" />
@@ -324,6 +354,7 @@ export const FocusPage: React.FC = () => {
               <div className="text-[100px] leading-none font-extralight tracking-tighter tabular-nums mb-4 text-gradient">
                 {formatTime(session.plannedDuration - elapsed > 0 ? session.plannedDuration - elapsed : 0)}
               </div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 mb-3 truncate max-w-[80vw] mx-auto">{goalLabel}</div>
               <div className="flex items-center justify-center space-x-2 text-blue-500 text-sm font-medium glass-panel px-4 py-1.5 rounded-full mx-auto w-fit mb-8">
                 <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
                 <span>专注中</span>
@@ -396,6 +427,16 @@ export const FocusPage: React.FC = () => {
         isOpen={isDelayOpen} 
         onClose={() => setIsDelayOpen(false)} 
         variant={isLandscape ? 'modal' : 'drawer'}
+      />
+
+      <GoalPickerDrawer
+        isOpen={isGoalPickerOpen}
+        onClose={() => setIsGoalPickerOpen(false)}
+        value={taskMeta}
+        onChange={(meta) => {
+          setTaskMeta(meta);
+          goalStore.setSelected(meta);
+        }}
       />
 
       {/* Ritual Drawer */}

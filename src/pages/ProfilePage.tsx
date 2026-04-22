@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Upload, Trash2, Moon, Sun, Monitor, AlertTriangle, Activity, CheckCircle2, PieChart } from 'lucide-react';
+import { Download, Trash2, Moon, Sun, Monitor, AlertTriangle, Activity, CheckCircle2, PieChart, Target, Flame } from 'lucide-react';
 import { useSettingsStore, ThemeMode } from '../store/useSettingsStore';
 import { useFocusStore } from '../store/useFocusStore';
 import { usePolicyStore } from '../store/usePolicyStore';
 import { useSystemStore } from '../store/useSystemStore';
+import { useGoalStore } from '../store/useGoalStore';
 import { cn } from '../components/DelayDrawer';
 import { formatTime } from '../utils/formatTime';
 
@@ -16,7 +17,8 @@ export const ProfilePage = () => {
   const { theme, setTheme } = useSettingsStore();
   const { historySessions, historyUrges, chains } = useFocusStore();
   const { policies } = usePolicyStore();
-  const { nodes, edges } = useSystemStore();
+  const { nodes, collapseLogs } = useSystemStore();
+  const { goals, projects, tasks } = useGoalStore();
   
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -30,6 +32,53 @@ export const ProfilePage = () => {
   const overcomeUrges = historyUrges.filter(u => u.outcome === 'overcome').length;
   const totalUrges = historyUrges.length;
   const urgeWinRate = totalUrges > 0 ? Math.round((overcomeUrges / totalUrges) * 100) : 0;
+
+  const projectById = new Map(projects.map(p => [p.id, p]));
+  const taskById = new Map(tasks.map(t => [t.id, t]));
+  const policyById = new Map(policies.map(p => [p.id, p]));
+
+  const resolveGoalIdFromMeta = (meta?: { goalId?: string; projectId?: string; taskId?: string }) => {
+    if (!meta) return undefined;
+    if (meta.goalId) return meta.goalId;
+    if (meta.projectId) return projectById.get(meta.projectId)?.goalId;
+    if (meta.taskId) {
+      const task = taskById.get(meta.taskId);
+      if (!task) return undefined;
+      return projectById.get(task.projectId)?.goalId;
+    }
+    return undefined;
+  };
+
+  const goalSummaries = goals.map(g => {
+    const focusSessions = historySessions.filter(s => resolveGoalIdFromMeta(s.taskMeta) === g.id);
+    const focusSeconds = focusSessions.reduce((acc, s) => acc + (s.actualDuration || 0), 0);
+
+    const goalPolicyIds = policies
+      .filter(p => {
+        if (p.goalId) return p.goalId === g.id;
+        if (p.projectId) return projectById.get(p.projectId)?.goalId === g.id;
+        return false;
+      })
+      .map(p => p.id);
+
+    const collapseCount = collapseLogs.filter(l => goalPolicyIds.includes(l.policyId)).length;
+
+    const litCount = nodes.filter(n => {
+      if (n.data.status !== 'LIT') return false;
+      const policy = policyById.get(n.data.policyId);
+      if (!policy) return false;
+      const goalId = policy.goalId || (policy.projectId ? projectById.get(policy.projectId)?.goalId : undefined);
+      return goalId === g.id;
+    }).length;
+
+    return {
+      goal: g,
+      focusSeconds,
+      focusSessions: focusSessions.length,
+      collapseCount,
+      litCount
+    };
+  });
 
   const handleExport = () => {
     const data = {
@@ -114,6 +163,61 @@ export const ProfilePage = () => {
               <SystemCorrelationChart />
             </div>
           </div>
+        </section>
+
+        <section>
+          <h2 className="text-lg font-semibold mb-4 flex items-center"><Target size={20} className="mr-2 text-blue-500" /> 目标复盘</h2>
+          {goalSummaries.length === 0 ? (
+            <div className="glass-card p-6 text-zinc-500 dark:text-zinc-400">
+              <div className="font-medium text-zinc-700 dark:text-zinc-200 mb-1">还没有目标体系</div>
+              <div className="text-sm">去专注页点击“关联目标”，创建 Goal / Project / Task，并把专注与国策绑定到同一个目标上。</div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {goalSummaries
+                .sort((a, b) => (b.focusSeconds + b.litCount * 60) - (a.focusSeconds + a.litCount * 60))
+                .map(({ goal, focusSeconds, focusSessions, collapseCount, litCount }) => (
+                  <div key={goal.id} className="glass-card p-5">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono mb-1">GOAL</div>
+                        <div className="text-lg font-semibold">{goal.title}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xs text-zinc-500 dark:text-zinc-400">总专注</div>
+                        <div className="text-lg font-medium tabular-nums">{formatTime(focusSeconds)}</div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-3 gap-3">
+                      <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3">
+                        <div className="flex items-center space-x-2 text-zinc-500 dark:text-zinc-400 text-xs mb-1">
+                          <Activity size={14} />
+                          <span>专注次数</span>
+                        </div>
+                        <div className="text-xl font-medium tabular-nums">{focusSessions}</div>
+                      </div>
+
+                      <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3">
+                        <div className="flex items-center space-x-2 text-zinc-500 dark:text-zinc-400 text-xs mb-1">
+                          <CheckCircle2 size={14} className="text-green-500" />
+                          <span>点亮节点</span>
+                        </div>
+                        <div className="text-xl font-medium tabular-nums">{litCount}</div>
+                      </div>
+
+                      <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3">
+                        <div className="flex items-center space-x-2 text-zinc-500 dark:text-zinc-400 text-xs mb-1">
+                          <Flame size={14} className={collapseCount > 0 ? "text-orange-500" : "text-zinc-400"} />
+                          <span>崩溃次数</span>
+                        </div>
+                        <div className={cn("text-xl font-medium tabular-nums", collapseCount > 0 ? "text-orange-500" : "")}>{collapseCount}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
         </section>
 
         <section>

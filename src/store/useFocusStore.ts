@@ -20,6 +20,11 @@ export type DelayLevel = 30 | 120 | 300; // seconds
 export interface Session {
   id: string;
   taskId: string;
+  taskMeta?: {
+    goalId?: string;
+    projectId?: string;
+    taskId?: string;
+  };
   plannedDuration: number;
   actualDuration: number;
   startTime: number | null;
@@ -56,7 +61,7 @@ interface FocusState {
   chains: Chain[];
   
   // Actions
-  startSession: (taskId: string, plannedDuration: number, chainId: string) => void;
+  startSession: (taskId: string, plannedDuration: number, chainId: string, taskMeta?: Session['taskMeta']) => void;
   pauseSession: (actualDuration: number) => void;
   resumeSession: () => void;
   finishSession: (actualDuration: number, endType: 'success' | 'degrade' | 'fail', qualityRating?: number) => void;
@@ -79,11 +84,12 @@ export const useFocusStore = create<FocusState>()(
       historyUrges: [],
       chains: [{ id: 'default', name: '日常专注', currentLength: 0, maxLength: 0 }],
 
-      startSession: (taskId, plannedDuration, chainId) => {
+      startSession: (taskId, plannedDuration, chainId, taskMeta) => {
         set({
           currentSession: {
             id: crypto.randomUUID(),
             taskId,
+            taskMeta,
             plannedDuration,
             actualDuration: 0,
             startTime: Date.now(),
