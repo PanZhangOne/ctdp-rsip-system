@@ -116,28 +116,31 @@ const SystemPageContent = () => {
   };
 
   return (
-    <div className="flex flex-col h-[100dvh] bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 pb-16 transition-colors">
+    <div className="flex flex-col h-[100dvh] text-zinc-900 dark:text-zinc-100 pb-16 transition-colors">
+      {/* Background Ambience / Depth */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/50 via-zinc-50 to-zinc-50 dark:from-blue-900/20 dark:via-black dark:to-black -z-10 transition-colors pointer-events-none" />
+
       {/* Dashboard Header */}
-      <div className="shrink-0 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 z-10 px-6 pt-12 pb-4 shadow-sm transition-colors">
-        <h1 className="text-2xl font-semibold mb-4">体系稳态</h1>
+      <div className="shrink-0 glass-panel z-10 px-6 pt-14 pb-5 shadow-sm transition-colors border-b-0 rounded-b-[2.5rem]">
+        <h1 className="text-2xl font-semibold mb-5 tracking-tight">体系稳态</h1>
         
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-zinc-100 dark:bg-zinc-900/50 p-4 rounded-2xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between transition-colors col-span-2">
+          <div className="glass-card p-4 flex items-center justify-between transition-colors col-span-2 shadow-[0_8px_16px_-6px_rgba(0,0,0,0.05)] dark:shadow-[0_8px_16px_-6px_rgba(0,0,0,0.4)]">
             <div>
               <div className="text-zinc-500 dark:text-zinc-400 text-xs font-medium mb-1">稳态指数</div>
               <div className="text-3xl font-light tabular-nums flex items-baseline">
                 {Number.isNaN(steadyIndex) ? 0 : steadyIndex}<span className="text-sm text-zinc-500 ml-1">%</span>
               </div>
             </div>
-            <div className="w-12 h-12 rounded-full border-4 border-zinc-200 dark:border-zinc-800 flex items-center justify-center relative">
-              <svg className="w-full h-full transform -rotate-90 absolute inset-0">
-                <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" strokeWidth="4" className="text-blue-500" strokeDasharray="113" strokeDashoffset={113 - (113 * (Number.isNaN(steadyIndex) ? 0 : steadyIndex)) / 100} />
+            <div className="w-12 h-12 rounded-full border-4 border-zinc-100 dark:border-zinc-800/50 flex items-center justify-center relative">
+              <svg className="w-full h-full transform -rotate-90 absolute inset-0 drop-shadow-md">
+                <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" strokeWidth="4" className="text-blue-500" strokeDasharray="113" strokeDashoffset={113 - (113 * (Number.isNaN(steadyIndex) ? 0 : steadyIndex)) / 100} strokeLinecap="round" />
               </svg>
               <Activity size={18} className="text-blue-500" />
             </div>
           </div>
 
-          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-2xl border border-blue-200 dark:border-blue-900/50 flex flex-col justify-center transition-colors">
+          <div className="glass-card bg-blue-500/10 dark:bg-blue-500/10 border-blue-500/20 dark:border-blue-500/20 p-4 flex flex-col justify-center transition-colors shadow-[0_8px_16px_-6px_rgba(59,130,246,0.1)]">
             <div className="text-blue-600 dark:text-blue-400 text-xs font-medium mb-1 line-clamp-1">根节点稳态</div>
             <div className="flex items-baseline space-x-1">
               <span className="text-2xl font-medium text-blue-700 dark:text-blue-300">{maxRootDays}</span>
@@ -146,12 +149,12 @@ const SystemPageContent = () => {
           </div>
         </div>
 
-        <div className="mt-3 bg-zinc-100 dark:bg-zinc-900/50 px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-between transition-colors">
+        <div className="mt-3 glass-card bg-white/40 dark:bg-zinc-800/30 px-4 py-3 flex items-center justify-between transition-colors shadow-sm">
           <div className="flex items-center space-x-2">
-            <Layers size={16} className="text-green-500" />
+            <Layers size={16} className="text-green-500 drop-shadow-sm" />
             <span className="text-sm font-medium">农村包围城市进度</span>
           </div>
-          <span className="text-sm font-mono bg-white dark:bg-zinc-800 px-2 py-0.5 rounded-md border border-zinc-200 dark:border-zinc-700">{litCount} / {totalCount}</span>
+          <span className="text-sm font-mono glass-button px-2.5 py-0.5 rounded-lg">{litCount} / {totalCount}</span>
         </div>
       </div>
 
@@ -176,7 +179,7 @@ const SystemPageContent = () => {
         {/* Add Node Quick Access (Only when empty) */}
       {policies.length > 0 && nodes.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
-          <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-xl pointer-events-auto text-center max-w-xs">
+          <div className="glass-card p-6 pointer-events-auto text-center max-w-xs transition-colors">
             <Target className="mx-auto mb-3 text-blue-500" size={32} />
             <h3 className="font-medium mb-2">建立你的第一条国策</h3>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-4">从你的国策库中选择一条作为体系的基石。</p>
@@ -228,7 +231,8 @@ const SystemPageContent = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl max-h-[70vh] flex flex-col transition-colors pb-safe"
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 glass-drawer p-6 z-50 max-h-[70vh] flex flex-col transition-colors pb-safe"
             >
               <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6 shrink-0" />
               
@@ -279,7 +283,8 @@ const SystemPageContent = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="fixed bottom-16 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl pb-safe transition-colors"
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-16 left-0 right-0 glass-drawer p-6 z-50 pb-safe transition-colors"
             >
               <div className="flex justify-between items-start mb-6">
                 <div>
@@ -332,9 +337,10 @@ const SystemPageContent = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-md transition-colors"
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm transition-colors"
           >
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl transition-colors">
+            <div className="glass-card p-6 w-full max-w-sm transition-colors">
               <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center text-red-500 mb-4">
                 <AlertCircle size={24} />
               </div>

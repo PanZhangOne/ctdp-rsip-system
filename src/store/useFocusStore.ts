@@ -57,7 +57,7 @@ interface FocusState {
   
   // Actions
   startSession: (taskId: string, plannedDuration: number, chainId: string) => void;
-  pauseSession: () => void;
+  pauseSession: (actualDuration: number) => void;
   resumeSession: () => void;
   finishSession: (actualDuration: number, endType: 'success' | 'degrade' | 'fail', qualityRating?: number) => void;
   abortSession: () => void;
@@ -95,11 +95,11 @@ export const useFocusStore = create<FocusState>()(
         });
       },
 
-      pauseSession: () => {
+      pauseSession: (actualDuration) => {
         set((state) => {
           if (!state.currentSession) return state;
           return {
-            currentSession: { ...state.currentSession, state: 'paused' },
+            currentSession: { ...state.currentSession, state: 'paused', actualDuration },
           };
         });
       },

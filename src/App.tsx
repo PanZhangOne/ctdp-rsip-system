@@ -21,50 +21,46 @@ const PlaceholderPage = ({ title }: { title: string }) => (
 
 const Navigation = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-900 pb-safe z-30 transition-colors">
-      <div className="flex justify-around items-center h-16 px-6 max-w-md mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 glass-panel border-x-0 border-b-0 pb-safe z-30 transition-colors rounded-t-[2.5rem]">
+      <div className="flex justify-around items-center h-[88px] px-6 max-w-md mx-auto pb-4">
         <NavLink
           to="/"
           className={({ isActive }) => cn(
-            "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-colors",
-            isActive ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"
+            "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-300",
+            isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
-          <Timer size={24} strokeWidth={1.5} />
-          <span className="text-[10px] font-medium">专注</span>
+          <Timer size={26} strokeWidth={isActive ? 2 : 1.5} />
         </NavLink>
         
         <NavLink
           to="/system"
           className={({ isActive }) => cn(
-            "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-colors",
-            isActive ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"
+            "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-300",
+            isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
-          <LayoutDashboard size={24} strokeWidth={1.5} />
-          <span className="text-[10px] font-medium">体系</span>
+          <LayoutDashboard size={26} strokeWidth={isActive ? 2 : 1.5} />
         </NavLink>
 
         <NavLink
           to="/policies"
           className={({ isActive }) => cn(
-            "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-colors",
-            isActive ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"
+            "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-300",
+            isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
-          <ScrollText size={24} strokeWidth={1.5} />
-          <span className="text-[10px] font-medium">国策</span>
+          <ScrollText size={26} strokeWidth={isActive ? 2 : 1.5} />
         </NavLink>
 
         <NavLink
           to="/profile"
           className={({ isActive }) => cn(
-            "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-colors",
-            isActive ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"
+            "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-300",
+            isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
-          <User size={24} strokeWidth={1.5} />
-          <span className="text-[10px] font-medium">我的</span>
+          <User size={26} strokeWidth={isActive ? 2 : 1.5} />
         </NavLink>
       </div>
     </div>

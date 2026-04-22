@@ -67,7 +67,7 @@ export const DelayDrawer: React.FC<DelayDrawerProps> = ({ isOpen, onClose }) => 
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl flex flex-col text-zinc-900 dark:text-zinc-100 transition-colors"
+            className="fixed bottom-0 left-0 right-0 glass-drawer p-6 z-50 flex flex-col text-zinc-900 dark:text-zinc-100 transition-colors pb-safe"
           >
             <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6 transition-colors" />
             

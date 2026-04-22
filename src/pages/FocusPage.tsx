@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Square, Pause, AlertTriangle, Link2, Settings, Star, CheckCircle, Plus, Trash2, X } from 'lucide-react';
 import { useFocusStore } from '../store/useFocusStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { useOrientation } from '../hooks/useOrientation';
+import { useWakeLock } from '../hooks/useWakeLock';
 import { DelayDrawer, cn } from '../components/DelayDrawer';
 import { formatTime } from '../utils/formatTime';
 
@@ -32,29 +34,40 @@ export const FocusPage: React.FC = () => {
   const isRunning = session?.state === 'running';
   const isPaused = session?.state === 'paused';
   
+  // Landscape & Wake Lock logic
+  const isLandscape = useOrientation();
+  useWakeLock(!!session && isLandscape);
+  
   const timerRef = useRef<number | null>(null);
 
+  // Initialize elapsed once when session loads
   useEffect(() => {
     if (session) {
       setElapsed(session.actualDuration);
-      if (isRunning) {
-        timerRef.current = window.setInterval(() => {
-          setElapsed(prev => {
-            const next = prev + 1;
-            // Update actual duration implicitly for now, we'll sync it fully on pause/finish
-            return next;
-          });
-        }, 1000);
-      }
     } else {
       setElapsed(0);
+    }
+  }, [session?.id]);
+
+  useEffect(() => {
+    if (session) {
+      if (isRunning) {
+        timerRef.current = window.setInterval(() => {
+          setElapsed(prev => prev + 1);
+        }, 1000);
+      } else {
+        // Paused or finished state, sync exact duration from store
+        setElapsed(session.actualDuration);
+        if (timerRef.current) clearInterval(timerRef.current);
+      }
+    } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [session, isRunning]);
+  }, [session?.id, session?.state]);
 
   const handleStart = () => {
     if (!taskName.trim()) return;
@@ -98,9 +111,10 @@ export const FocusPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 flex flex-col pt-12 pb-24 px-6 overflow-hidden relative transition-colors">
-      {/* Background Ambience */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-200 via-zinc-50 to-zinc-50 dark:from-zinc-900 dark:via-black dark:to-black -z-10 transition-colors" />
+    <div className="min-h-[100dvh] text-zinc-900 dark:text-zinc-100 flex flex-col pt-14 pb-24 px-6 overflow-hidden relative transition-colors">
+      {/* Background Ambience / Depth */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100 via-zinc-50 to-zinc-50 dark:from-blue-900/20 dark:via-black dark:to-black -z-10 transition-colors" />
+      <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/20 dark:bg-blue-600/10 blur-3xl rounded-full -z-10 pointer-events-none" />
 
       {/* Header / Chain Status */}
       <motion.div 
@@ -111,13 +125,13 @@ export const FocusPage: React.FC = () => {
         <button 
           onClick={() => !session && setShowChainsDrawer(true)}
           className={cn(
-            "flex items-center space-x-3 bg-white/50 dark:bg-zinc-900/50 backdrop-blur px-4 py-2 rounded-full border border-zinc-200 dark:border-zinc-800 transition-colors",
-            !session && "hover:bg-white dark:hover:bg-zinc-800 cursor-pointer"
+            "flex items-center space-x-3 glass-button px-5 py-2.5 rounded-full",
+            !session && "cursor-pointer"
           )}
         >
-          <Link2 size={16} className={activeChain?.currentLength ? 'text-green-500' : 'text-zinc-400 dark:text-zinc-500'} />
+          <Link2 size={16} className={activeChain?.currentLength ? 'text-blue-500' : 'text-zinc-500'} />
           <span className="text-sm font-medium">{activeChain?.name || '选择专注链'}</span>
-          <span className="bg-zinc-100 dark:bg-zinc-800 text-xs px-2 py-0.5 rounded-md tabular-nums font-mono transition-colors">
+          <span className="bg-white/50 dark:bg-white/10 shadow-sm text-xs px-2.5 py-0.5 rounded-md tabular-nums font-mono transition-colors">
             {activeChain?.currentLength || 0} 连
           </span>
         </button>
@@ -125,8 +139,8 @@ export const FocusPage: React.FC = () => {
           onClick={() => !session && setShowSettingsDrawer(true)}
           disabled={!!session}
           className={cn(
-            "p-2 text-zinc-500 dark:text-zinc-400 transition-colors",
-            !session ? "hover:text-zinc-900 dark:hover:text-white" : "opacity-50"
+            "p-3 glass-button rounded-full transition-all",
+            !session ? "hover:scale-105" : "opacity-50"
           )}
         >
           <Settings size={20} />
@@ -138,20 +152,20 @@ export const FocusPage: React.FC = () => {
           /* Start State */
           <motion.div 
             key="setup"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             exit={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
             className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full z-10"
           >
-            <div className="space-y-8">
+            <div className="space-y-10 glass-card p-8">
               <div>
                 <input
                   type="text"
                   placeholder="今天要专注什么？"
                   value={taskName}
                   onChange={(e) => setTaskName(e.target.value)}
-                  className="w-full bg-transparent text-3xl font-light placeholder-zinc-400 dark:placeholder-zinc-700 border-b border-zinc-200 dark:border-zinc-800 pb-4 focus:outline-none focus:border-zinc-500 transition-colors"
+                  className="w-full bg-transparent text-3xl font-light placeholder-zinc-400 dark:placeholder-zinc-600 border-b border-zinc-200/50 dark:border-zinc-800/50 pb-4 focus:outline-none focus:border-blue-500 transition-colors"
                 />
               </div>
 
@@ -161,10 +175,10 @@ export const FocusPage: React.FC = () => {
                     key={m}
                     onClick={() => setSelectedTime(m * 60)}
                     className={cn(
-                      "py-4 rounded-2xl border text-lg transition-all duration-300",
+                      "py-4 rounded-[1.25rem] text-lg transition-all duration-300 backdrop-blur-md",
                       selectedTime === m * 60 
-                        ? "bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black border-transparent shadow-[0_0_20px_rgba(0,0,0,0.1)] dark:shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
-                        : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 text-zinc-500 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-700"
+                        ? "bg-white/80 dark:bg-zinc-800/80 text-zinc-900 dark:text-white shadow-md border border-white/60 dark:border-white/10 scale-105" 
+                        : "glass-button text-zinc-600 dark:text-zinc-400"
                     )}
                   >
                     {m}m
@@ -173,60 +187,106 @@ export const FocusPage: React.FC = () => {
               </div>
 
               <motion.button
-                whileTap={{ scale: 0.96 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleStart}
                 disabled={!taskName.trim()}
-                className="w-full mt-12 py-5 rounded-[2rem] bg-blue-600 text-white font-medium text-xl shadow-xl shadow-blue-900/20 disabled:opacity-50 disabled:shadow-none flex items-center justify-center space-x-2"
+                className="w-full py-5 rounded-[2rem] bg-blue-500/80 dark:bg-blue-600/80 backdrop-blur-md text-white font-medium text-xl shadow-[0_12px_40px_rgba(59,130,246,0.3)] border border-blue-400/50 disabled:opacity-50 disabled:shadow-none flex items-center justify-center space-x-2 transition-all"
               >
                 <Play fill="currentColor" size={24} />
                 <span>开始专注</span>
               </motion.button>
             </div>
           </motion.div>
+        ) : isLandscape ? (
+          /* Active State - Landscape */
+          <motion.div 
+            key="landscape-active"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 bg-zinc-950 flex items-center justify-center p-8 landscape-view safe-area-px"
+          >
+            <div className="w-full max-w-5xl flex items-center justify-between space-x-12">
+              <div className="flex-1 flex flex-col justify-center">
+                <h2 className="text-zinc-500 text-xl sm:text-2xl mb-2 sm:mb-6 tracking-wide font-medium">{session.taskId}</h2>
+                <div className="text-[120px] sm:text-[160px] leading-none font-extralight tracking-tighter tabular-nums text-white/90">
+                  {formatTime(session.plannedDuration - elapsed > 0 ? session.plannedDuration - elapsed : 0)}
+                </div>
+              </div>
+              
+              <div className="w-64 flex flex-col space-y-6 shrink-0">
+                <button
+                  onClick={() => setIsDelayOpen(true)}
+                  className="py-6 rounded-3xl bg-white/10 border border-white/20 text-orange-400 hover:bg-white/20 flex justify-center items-center space-x-3 backdrop-blur-md transition-all"
+                >
+                  <AlertTriangle size={24} />
+                  <span className="font-medium text-xl">我想分心了</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    const isSuccess = elapsed >= session.plannedDuration;
+                    const isDegrade = elapsed >= session.plannedDuration * 0.5;
+                    handleStop(isSuccess ? 'success' : isDegrade ? 'degrade' : 'fail');
+                  }}
+                  className={cn(
+                    "py-6 rounded-3xl flex justify-center items-center transition-all duration-300 border backdrop-blur-md",
+                    elapsed >= session.plannedDuration 
+                      ? "bg-green-500/80 text-white shadow-[0_8px_20px_rgba(34,197,94,0.3)] border-green-400/50" 
+                      : "bg-white/10 border-red-500/30 text-red-500 hover:bg-red-500/20"
+                  )}
+                >
+                  <Square size={24} className={elapsed >= session.plannedDuration ? "fill-current mr-3" : "mr-3"} />
+                  <span className="font-medium text-xl">停止</span>
+                </button>
+              </div>
+            </div>
+          </motion.div>
         ) : (
-          /* Active State */
+          /* Active State - Portrait */
           <motion.div 
             key="active"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', damping: 20 }}
             className="flex-1 flex flex-col justify-between items-center w-full z-10"
           >
             <div className="text-center mt-8">
-              <h2 className="text-zinc-500 dark:text-zinc-400 text-lg mb-2">{session.taskId}</h2>
-              <div className="text-8xl font-extralight tracking-tighter tabular-nums mb-4">
+              <h2 className="text-zinc-500 dark:text-zinc-400 text-lg mb-2 tracking-wide">{session.taskId}</h2>
+              <div className="text-[100px] leading-none font-extralight tracking-tighter tabular-nums mb-4 text-gradient">
                 {formatTime(session.plannedDuration - elapsed > 0 ? session.plannedDuration - elapsed : 0)}
               </div>
-              <div className="flex items-center justify-center space-x-2 text-zinc-500 text-sm">
-                <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <div className="flex items-center justify-center space-x-2 text-blue-500 text-sm font-medium glass-panel px-4 py-1.5 rounded-full mx-auto w-fit">
+                <span className="inline-block w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.8)]" />
                 <span>专注中</span>
               </div>
             </div>
 
             {/* Circular Progress Background */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 border-[0.5px] border-zinc-300 dark:border-zinc-800 rounded-full opacity-40 dark:opacity-20 pointer-events-none transition-colors" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border-[0.5px] border-zinc-200 dark:border-zinc-800/50 rounded-full opacity-40 dark:opacity-10 pointer-events-none transition-colors" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[340px] h-[340px] border-[0.5px] border-blue-500/20 dark:border-blue-500/10 rounded-full pointer-events-none" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] border-[0.5px] border-zinc-300/30 dark:border-zinc-800/30 rounded-full pointer-events-none" />
 
             <div className="w-full max-w-sm space-y-6">
               <button
                 onClick={() => setIsDelayOpen(true)}
-                className="w-full py-4 rounded-2xl bg-white/80 dark:bg-zinc-900/80 border border-orange-200 dark:border-orange-900/30 text-orange-500 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-950/20 transition-colors flex justify-center items-center space-x-2 backdrop-blur-md"
+                className="w-full py-4 rounded-3xl glass-button border-orange-500/20 text-orange-500 hover:bg-orange-50/50 dark:hover:bg-orange-900/20 flex justify-center items-center space-x-2"
               >
                 <AlertTriangle size={18} />
-                <span>我想分心了</span>
+                <span className="font-medium">我想分心了</span>
               </button>
 
               <div className="grid grid-cols-2 gap-4">
                 {isRunning ? (
                   <button
-                    onClick={store.pauseSession}
-                    className="py-5 rounded-[2rem] bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 flex justify-center items-center transition-colors"
+                    onClick={() => store.pauseSession(elapsed)}
+                    className="py-5 rounded-[2rem] glass-button text-zinc-600 dark:text-zinc-300 flex justify-center items-center"
                   >
                     <Pause size={24} />
                   </button>
                 ) : (
                   <button
                     onClick={store.resumeSession}
-                    className="py-5 rounded-[2rem] bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 flex justify-center items-center transition-colors"
+                    className="py-5 rounded-[2rem] bg-white/70 dark:bg-zinc-800/70 border border-white/50 dark:border-white/10 backdrop-blur-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] text-zinc-900 dark:text-white flex justify-center items-center"
                   >
                     <Play size={24} />
                   </button>
@@ -239,10 +299,10 @@ export const FocusPage: React.FC = () => {
                     handleStop(isSuccess ? 'success' : isDegrade ? 'degrade' : 'fail');
                   }}
                   className={cn(
-                    "py-5 rounded-[2rem] flex justify-center items-center transition-all",
+                    "py-5 rounded-[2rem] flex justify-center items-center transition-all duration-300 border backdrop-blur-md",
                     elapsed >= session.plannedDuration 
-                      ? "bg-green-600 text-white shadow-lg shadow-green-900/20" 
-                      : "bg-red-50 dark:bg-red-950/30 text-red-500 hover:bg-red-100 dark:hover:bg-red-900/50 border border-red-200 dark:border-red-900/50"
+                      ? "bg-green-500/80 text-white shadow-[0_8px_20px_rgba(34,197,94,0.3)] border-green-400/50" 
+                      : "glass-button border-red-500/20 text-red-500 hover:bg-red-50/50 dark:hover:bg-red-900/20"
                   )}
                 >
                   <Square size={24} className={elapsed >= session.plannedDuration ? "fill-current" : ""} />
@@ -273,7 +333,8 @@ export const FocusPage: React.FC = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl flex flex-col transition-colors pb-safe"
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 glass-drawer p-6 z-50 flex flex-col transition-colors pb-safe"
             >
               <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6 shrink-0" />
               
@@ -309,7 +370,7 @@ export const FocusPage: React.FC = () => {
               <button 
                 onClick={confirmRitualAndStart}
                 disabled={!ritualChecks.every(Boolean)}
-                className="w-full py-4 rounded-xl bg-blue-600 text-white font-medium text-lg hover:bg-blue-500 disabled:bg-zinc-200 dark:disabled:bg-zinc-800 disabled:text-zinc-400 dark:disabled:text-zinc-600 transition-colors"
+                className="w-full py-4 rounded-2xl bg-blue-500/90 dark:bg-blue-600/80 backdrop-blur-md border border-blue-400/50 text-white font-medium text-lg hover:bg-blue-500 disabled:bg-zinc-200/50 dark:disabled:bg-zinc-800/50 disabled:border-transparent disabled:text-zinc-400 dark:disabled:text-zinc-600 transition-colors shadow-lg shadow-blue-500/20 disabled:shadow-none"
               >
                 {ritualChecks.every(Boolean) ? "仪式完成，开始专注" : "请先完成所有准备动作"}
               </button>
@@ -332,7 +393,8 @@ export const FocusPage: React.FC = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl flex flex-col transition-colors pb-safe"
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 glass-drawer p-6 z-50 flex flex-col transition-colors pb-safe"
             >
               <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6 shrink-0" />
               
@@ -389,7 +451,8 @@ export const FocusPage: React.FC = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl flex flex-col transition-colors pb-safe max-h-[80vh]"
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 glass-drawer p-6 z-50 flex flex-col transition-colors pb-safe max-h-[80vh]"
             >
               <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6 shrink-0" />
               
@@ -488,7 +551,8 @@ export const FocusPage: React.FC = () => {
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
-              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl flex flex-col transition-colors pb-safe"
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed bottom-0 left-0 right-0 glass-drawer p-6 z-50 flex flex-col transition-colors pb-safe"
             >
               <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6 shrink-0" />
               

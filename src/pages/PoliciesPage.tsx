@@ -12,27 +12,27 @@ const PolicyCard = ({ policy, onEdit, onDelete, onToggle }: {
 }) => {
   return (
     <div className={cn(
-      "bg-white dark:bg-zinc-900 border rounded-2xl p-5 shadow-sm transition-all duration-300",
+      "glass-card p-5 transition-all duration-300 group",
       policy.isActive 
-        ? "border-blue-200 dark:border-blue-900/30 shadow-blue-500/5 dark:shadow-blue-900/10" 
-        : "border-zinc-200 dark:border-zinc-800 opacity-60"
+        ? "border-blue-400/30 dark:border-blue-500/30 shadow-[0_8px_24px_-6px_rgba(59,130,246,0.15)] dark:shadow-[0_8px_24px_-6px_rgba(59,130,246,0.2)]" 
+        : "opacity-70 hover:opacity-100"
     )}>
       <div className="flex justify-between items-start mb-4">
-        <h3 className="font-semibold text-lg text-zinc-900 dark:text-zinc-100">{policy.title}</h3>
+        <h3 className="font-semibold text-lg text-zinc-900 dark:text-zinc-100 tracking-tight">{policy.title}</h3>
         <div className="flex items-center space-x-2">
           {onToggle && (
             <button 
               onClick={() => onToggle(policy.id)}
               className={cn(
-                "w-12 h-6 rounded-full transition-colors relative",
+                "w-12 h-6 rounded-full transition-colors relative shadow-inner",
                 policy.isActive ? "bg-blue-500" : "bg-zinc-300 dark:bg-zinc-700"
               )}
             >
               <motion.div 
                 layout
-                className="w-4 h-4 bg-white rounded-full absolute top-1"
+                className="w-5 h-5 bg-white rounded-full absolute top-0.5 shadow-sm"
                 initial={false}
-                animate={{ left: policy.isActive ? "calc(100% - 20px)" : "4px" }}
+                animate={{ left: policy.isActive ? "calc(100% - 22px)" : "2px" }}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
               />
             </button>
@@ -42,26 +42,26 @@ const PolicyCard = ({ policy, onEdit, onDelete, onToggle }: {
 
       <div className="space-y-3">
         <div className="flex items-start space-x-3">
-          <div className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-md text-xs font-mono text-zinc-500 dark:text-zinc-400 mt-0.5">IF</div>
-          <div className="text-zinc-700 dark:text-zinc-300 flex-1">{policy.conditionIf}</div>
+          <div className="bg-zinc-100/80 dark:bg-zinc-800/80 px-2 py-1 rounded-lg text-xs font-mono text-zinc-500 dark:text-zinc-400 mt-0.5 shadow-sm">IF</div>
+          <div className="text-zinc-700 dark:text-zinc-300 flex-1 leading-relaxed">{policy.conditionIf}</div>
         </div>
         <div className="flex items-start space-x-3">
-          <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-md text-xs font-mono mt-0.5">THEN</div>
-          <div className="text-zinc-900 dark:text-zinc-100 font-medium flex-1">{policy.actionThen}</div>
+          <div className="bg-blue-100/80 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-lg text-xs font-mono mt-0.5 shadow-sm">THEN</div>
+          <div className="text-zinc-900 dark:text-zinc-100 font-medium flex-1 leading-relaxed">{policy.actionThen}</div>
         </div>
       </div>
 
       {policy.reminderTime && (
-        <div className="mt-4 flex items-center text-xs text-zinc-500 dark:text-zinc-400 space-x-1">
+        <div className="mt-5 flex items-center text-xs text-blue-500/80 dark:text-blue-400/80 space-x-1.5 bg-blue-50/50 dark:bg-blue-900/10 w-fit px-3 py-1.5 rounded-full">
           <Clock size={14} />
-          <span>提醒: {policy.reminderTime}</span>
+          <span className="font-medium">每日 {policy.reminderTime} 提醒</span>
         </div>
       )}
 
       {(onEdit || onDelete) && (
-        <div className="mt-5 pt-4 border-t border-zinc-100 dark:border-zinc-800 flex justify-end space-x-4">
+        <div className="mt-5 pt-4 border-t border-zinc-200/50 dark:border-zinc-700/50 flex justify-end space-x-4">
           {onDelete && (
-            <button onClick={() => onDelete(policy.id)} className="text-zinc-400 hover:text-red-500 transition-colors">
+            <button onClick={() => onDelete(policy.id)} className="text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-2 rounded-full transition-all">
               <Trash2 size={18} />
             </button>
           )}
@@ -76,25 +76,25 @@ const TemplateCard = ({ template, onAdopt }: { template: Policy, onAdopt: (id: s
   const isAdopted = store.policies.some(p => p.title === template.title);
 
   return (
-    <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5">
+    <div className="glass-card p-5 group">
       <div className="flex justify-between items-center mb-3">
         <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">{template.title}</h3>
         {isAdopted ? (
-          <span className="flex items-center text-xs text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded-full">
+          <span className="flex items-center text-xs text-green-500 bg-green-50 dark:bg-green-500/10 px-2 py-1 rounded-full border border-green-200/50 dark:border-green-900/50">
             <CheckCircle2 size={12} className="mr-1" /> 已采用
           </span>
         ) : (
           <button 
             onClick={() => onAdopt(template.id)}
-            className="text-xs bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 px-3 py-1 rounded-full shadow-sm hover:shadow transition-shadow"
+            className="text-xs bg-white dark:bg-zinc-700 text-zinc-900 dark:text-zinc-100 px-3 py-1.5 rounded-full shadow-sm hover:shadow-md transition-all border border-zinc-200/50 dark:border-zinc-600 hover:-translate-y-0.5"
           >
             采用模板
           </button>
         )}
       </div>
-      <div className="text-sm space-y-1">
-        <p className="text-zinc-500 dark:text-zinc-400"><span className="font-mono text-xs mr-1">IF</span>{template.conditionIf}</p>
-        <p className="text-zinc-700 dark:text-zinc-300"><span className="font-mono text-xs mr-1 text-blue-500">THEN</span>{template.actionThen}</p>
+      <div className="text-sm space-y-1.5">
+        <p className="text-zinc-500 dark:text-zinc-400"><span className="font-mono text-[10px] bg-zinc-200/50 dark:bg-zinc-700/50 px-1.5 py-0.5 rounded mr-1.5">IF</span>{template.conditionIf}</p>
+        <p className="text-zinc-700 dark:text-zinc-300"><span className="font-mono text-[10px] bg-blue-100/50 dark:bg-blue-900/30 text-blue-500 px-1.5 py-0.5 rounded mr-1.5">THEN</span>{template.actionThen}</p>
       </div>
     </div>
   );
@@ -122,9 +122,12 @@ export const PoliciesPage = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-zinc-50 dark:bg-black text-zinc-900 dark:text-zinc-100 pb-24 transition-colors">
+    <div className="min-h-[100dvh] text-zinc-900 dark:text-zinc-100 pb-24 transition-colors relative">
+      {/* Background Ambience / Depth */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-blue-100/50 via-zinc-50 to-zinc-50 dark:from-blue-900/20 dark:via-black dark:to-black -z-10 transition-colors pointer-events-none" />
+
       {/* Header */}
-      <div className="sticky top-0 z-20 bg-zinc-50/80 dark:bg-black/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 px-6 pt-12 pb-4">
+      <div className="sticky top-0 z-20 glass-panel border-x-0 border-t-0 px-6 pt-14 pb-2 shadow-sm rounded-b-3xl">
         <h1 className="text-3xl font-semibold tracking-tight">国策库</h1>
         <p className="text-zinc-500 dark:text-zinc-400 mt-1 text-sm">定义你的 IF-THEN 行为底线</p>
         
@@ -133,24 +136,30 @@ export const PoliciesPage = () => {
           <button 
             onClick={() => setActiveTab('my')}
             className={cn(
-              "pb-2 text-sm font-medium transition-colors border-b-2",
+              "pb-3 text-sm font-medium transition-all relative",
               activeTab === 'my' 
-                ? "border-blue-500 text-zinc-900 dark:text-zinc-100" 
-                : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                ? "text-zinc-900 dark:text-zinc-100" 
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             )}
           >
             我的国策 ({store.policies.length})
+            {activeTab === 'my' && (
+              <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-t-full" />
+            )}
           </button>
           <button 
             onClick={() => setActiveTab('templates')}
             className={cn(
-              "pb-2 text-sm font-medium transition-colors border-b-2",
+              "pb-3 text-sm font-medium transition-all relative",
               activeTab === 'templates' 
-                ? "border-blue-500 text-zinc-900 dark:text-zinc-100" 
-                : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+                ? "text-zinc-900 dark:text-zinc-100" 
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
             )}
           >
             经典模板
+            {activeTab === 'templates' && (
+              <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-1 bg-blue-500 rounded-t-full" />
+            )}
           </button>
         </div>
       </div>
@@ -223,14 +232,14 @@ export const PoliciesPage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsEditorOpen(false)}
-              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 transition-colors"
+              className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 transition-colors"
             />
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="fixed bottom-0 left-0 right-0 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800 rounded-t-3xl p-6 z-50 shadow-2xl flex flex-col max-h-[85vh] overflow-y-auto"
+              className="fixed bottom-0 left-0 right-0 glass-drawer p-6 z-50 flex flex-col max-h-[85vh] overflow-y-auto pb-safe"
             >
               <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6" />
               
@@ -249,7 +258,7 @@ export const PoliciesPage = () => {
                     placeholder="例如：夜幕降临"
                     value={editingPolicy.title || ''}
                     onChange={e => setEditingPolicy(p => ({ ...p, title: e.target.value }))}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors backdrop-blur-md"
                   />
                 </div>
 
@@ -264,7 +273,7 @@ export const PoliciesPage = () => {
                       placeholder="如果发生了什么..."
                       value={editingPolicy.conditionIf || ''}
                       onChange={e => setEditingPolicy(p => ({ ...p, conditionIf: e.target.value }))}
-                      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors"
+                      className="w-full bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors backdrop-blur-md"
                     />
                     <div className="flex gap-2 mt-2">
                       <button onClick={() => setEditingPolicy(p => ({...p, conditionIf: '晚上 22:00'}))} className="flex items-center text-xs bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 px-2 py-1 rounded-md text-zinc-600 dark:text-zinc-300"><Clock size={12} className="mr-1"/>时间</button>
@@ -283,7 +292,7 @@ export const PoliciesPage = () => {
                       placeholder="我就去执行..."
                       value={editingPolicy.actionThen || ''}
                       onChange={e => setEditingPolicy(p => ({ ...p, actionThen: e.target.value }))}
-                      className="w-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                      className="w-full bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors resize-none backdrop-blur-md"
                     />
                   </div>
                 </div>
@@ -294,7 +303,7 @@ export const PoliciesPage = () => {
                     type="time" 
                     value={editingPolicy.reminderTime || ''}
                     onChange={e => setEditingPolicy(p => ({ ...p, reminderTime: e.target.value }))}
-                    className="w-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors color-scheme-light dark:color-scheme-dark"
+                    className="w-full bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors color-scheme-light dark:color-scheme-dark backdrop-blur-md"
                   />
                 </div>
 
