@@ -15,6 +15,7 @@ export const FocusPage: React.FC = () => {
   const [selectedChain, setSelectedChain] = useState(store.chains[0]?.id || 'default');
   const [isDelayOpen, setIsDelayOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+  const [clockText, setClockText] = useState('');
 
   // Ritual and Post-Rating State
   const [showRitual, setShowRitual] = useState(false);
@@ -36,6 +37,34 @@ export const FocusPage: React.FC = () => {
   // Landscape & Wake Lock logic
   const [isLandscape, setIsLandscape] = useState(false);
   useWakeLock(!!session && isLandscape);
+
+  const enterFullscreen = async () => {
+    const el = document.documentElement as any;
+    const request = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (typeof request === 'function') {
+      try {
+        await request.call(el, { navigationUI: 'hide' });
+      } catch {
+        try {
+          await request.call(el);
+        } catch {
+          // noop
+        }
+      }
+    }
+  };
+
+  const exitFullscreen = async () => {
+    const doc: any = document;
+    const exit = document.exitFullscreen || doc.webkitExitFullscreen;
+    if (typeof exit === 'function') {
+      try {
+        await exit.call(document);
+      } catch {
+        // noop
+      }
+    }
+  };
   
   const timerRef = useRef<number | null>(null);
 
@@ -93,9 +122,23 @@ export const FocusPage: React.FC = () => {
     setPendingStopData(null);
     setElapsed(0);
     setIsLandscape(false);
+    exitFullscreen();
   };
 
   const activeChain = store.chains.find(c => c.id === (session?.chainId || selectedChain));
+
+  useEffect(() => {
+    if (!isLandscape) return;
+    const format = () => {
+      const now = new Date();
+      const time = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const weekday = now.toLocaleDateString('zh-CN', { weekday: 'short' });
+      setClockText(`${time} · ${weekday}`);
+    };
+    format();
+    const id = window.setInterval(format, 1000 * 10);
+    return () => window.clearInterval(id);
+  }, [isLandscape]);
 
   const handleCreateChain = () => {
     if (newChainName.trim()) {
@@ -203,46 +246,49 @@ export const FocusPage: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-zinc-950 flex items-center justify-center safe-area-px overflow-hidden"
+            className="fixed inset-0 z-50 bg-zinc-950 overflow-hidden"
           >
-            {/* The container that gets rotated 90 degrees */}
-            <div 
-              className="flex flex-col items-center justify-between"
+            <div
+              className="h-full w-full flex flex-col"
               style={{
-                width: '100vh',
-                height: '100vw',
-                transform: 'rotate(90deg)',
-                padding: '2rem 3rem'
+                paddingTop: 'max(env(safe-area-inset-top), 16px)',
+                paddingBottom: 'max(env(safe-area-inset-bottom), 16px)',
+                paddingLeft: 'max(env(safe-area-inset-left), 16px)',
+                paddingRight: 'max(env(safe-area-inset-right), 16px)',
               }}
             >
-              <div className="w-full flex items-center justify-between">
+              <div className="flex items-center justify-between">
                 <button
-                  onClick={() => setIsLandscape(false)}
-                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white/50 hover:text-white transition-all"
+                  onClick={async () => {
+                    setIsLandscape(false);
+                    await exitFullscreen();
+                  }}
+                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-all"
                 >
                   <X size={20} />
                 </button>
 
-                <h2 className="text-zinc-500 text-lg tracking-widest font-medium">
-                  {session.taskId}
-                </h2>
-                
-                <div className="w-10" /> {/* Spacer */}
+                <div className="flex flex-col items-center">
+                  <div className="text-zinc-500 text-xs tracking-widest font-medium">{clockText}</div>
+                  <h2 className="text-white/80 text-base tracking-wide font-medium mt-1 max-w-[70vw] truncate">{session.taskId}</h2>
+                </div>
+
+                <div className="w-10" />
               </div>
 
               <div className="flex-1 flex items-center justify-center">
-                <div className="text-[120px] sm:text-[140px] leading-none font-extralight tracking-tighter tabular-nums text-white/90">
+                <div className="text-[120px] md:text-[160px] leading-none font-extralight tracking-tighter tabular-nums text-white/95">
                   {formatTime(session.plannedDuration - elapsed > 0 ? session.plannedDuration - elapsed : 0)}
                 </div>
               </div>
-              
-              <div className="flex space-x-6 w-full justify-center max-w-lg mx-auto">
+
+              <div className="flex items-center justify-center gap-4">
                 <button
                   onClick={() => setIsDelayOpen(true)}
-                  className="flex-1 py-4 rounded-full bg-white/10 border border-white/20 text-orange-400 hover:bg-white/20 flex justify-center items-center space-x-2 backdrop-blur-md transition-all"
+                  className="px-7 py-3 rounded-full bg-white/10 border border-white/20 text-orange-400 hover:bg-white/20 flex justify-center items-center space-x-2 backdrop-blur-md transition-all"
                 >
-                  <AlertTriangle size={20} />
-                  <span className="font-medium text-lg">我想分心了</span>
+                  <AlertTriangle size={18} />
+                  <span className="font-medium text-base">分心</span>
                 </button>
 
                 <button
@@ -252,14 +298,14 @@ export const FocusPage: React.FC = () => {
                     handleStop(isSuccess ? 'success' : isDegrade ? 'degrade' : 'fail');
                   }}
                   className={cn(
-                    "flex-1 py-4 rounded-full flex justify-center items-center transition-all duration-300 border backdrop-blur-md",
+                    "px-7 py-3 rounded-full flex justify-center items-center transition-all duration-300 border backdrop-blur-md",
                     elapsed >= session.plannedDuration 
                       ? "bg-green-500/80 text-white shadow-[0_8px_20px_rgba(34,197,94,0.3)] border-green-400/50" 
                       : "bg-white/10 border-red-500/30 text-red-500 hover:bg-red-500/20"
                   )}
                 >
-                  <Square size={20} className={elapsed >= session.plannedDuration ? "fill-current mr-2" : "mr-2"} />
-                  <span className="font-medium text-lg">停止</span>
+                  <Square size={18} className={elapsed >= session.plannedDuration ? "fill-current mr-2" : "mr-2"} />
+                  <span className="font-medium text-base">停止</span>
                 </button>
               </div>
             </div>
@@ -290,7 +336,10 @@ export const FocusPage: React.FC = () => {
 
             <div className="w-full max-w-sm space-y-6 z-10">
               <button
-                onClick={() => setIsLandscape(true)}
+                onClick={async () => {
+                  await enterFullscreen();
+                  setIsLandscape(true);
+                }}
                 className="w-full py-4 rounded-3xl glass-button text-blue-600 dark:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 flex justify-center items-center space-x-2"
               >
                 <MonitorPlay size={18} />
@@ -346,6 +395,7 @@ export const FocusPage: React.FC = () => {
       <DelayDrawer 
         isOpen={isDelayOpen} 
         onClose={() => setIsDelayOpen(false)} 
+        variant={isLandscape ? 'modal' : 'drawer'}
       />
 
       {/* Ritual Drawer */}
