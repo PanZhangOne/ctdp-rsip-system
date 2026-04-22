@@ -30,7 +30,9 @@ const Navigation = () => {
             isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
-          <Timer size={26} strokeWidth={isActive ? 2 : 1.5} />
+          {({ isActive }) => (
+            <Timer size={26} strokeWidth={isActive ? 2 : 1.5} />
+          )}
         </NavLink>
         
         <NavLink
@@ -40,7 +42,9 @@ const Navigation = () => {
             isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
-          <LayoutDashboard size={26} strokeWidth={isActive ? 2 : 1.5} />
+          {({ isActive }) => (
+            <LayoutDashboard size={26} strokeWidth={isActive ? 2 : 1.5} />
+          )}
         </NavLink>
 
         <NavLink
@@ -50,7 +54,9 @@ const Navigation = () => {
             isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
-          <ScrollText size={26} strokeWidth={isActive ? 2 : 1.5} />
+          {({ isActive }) => (
+            <ScrollText size={26} strokeWidth={isActive ? 2 : 1.5} />
+          )}
         </NavLink>
 
         <NavLink
@@ -60,7 +66,9 @@ const Navigation = () => {
             isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
-          <User size={26} strokeWidth={isActive ? 2 : 1.5} />
+          {({ isActive }) => (
+            <User size={26} strokeWidth={isActive ? 2 : 1.5} />
+          )}
         </NavLink>
       </div>
     </div>
