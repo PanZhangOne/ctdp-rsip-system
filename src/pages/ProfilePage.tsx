@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Trash2, Moon, Sun, Monitor, AlertTriangle, Activity, CheckCircle2, PieChart, Target, Flame, ChevronRight } from 'lucide-react';
+import { Download, Upload, Trash2, Moon, Sun, Monitor, AlertTriangle, Activity, CheckCircle2, PieChart, Target, Flame, ChevronRight } from 'lucide-react';
 import { useSettingsStore, ThemeMode } from '../store/useSettingsStore';
 import { useFocusStore } from '../store/useFocusStore';
 import { usePolicyStore } from '../store/usePolicyStore';
@@ -23,6 +23,9 @@ export const ProfilePage = () => {
   const { goals, projects, tasks } = useGoalStore();
   
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showImportConfirm, setShowImportConfirm] = useState(false);
+  const [importData, setImportData] = useState<any>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Stats calculation
   const totalFocusTime = historySessions
@@ -101,6 +104,41 @@ export const ProfilePage = () => {
     a.download = `ctdp-rsip-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        
+        // Basic validation
+        if (!json.focusStore && !json.policyStore && !json.systemStore) {
+          throw new Error("Invalid format");
+        }
+        
+        setImportData(json);
+        setShowImportConfirm(true);
+      } catch (err) {
+        alert('导入失败：文件格式不正确或不是有效的备份文件');
+      }
+    };
+    reader.readAsText(file);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const confirmImport = () => {
+    if (!importData) return;
+    if (importData.focusStore) localStorage.setItem('focus-storage', importData.focusStore);
+    if (importData.policyStore) localStorage.setItem('policy-storage', importData.policyStore);
+    if (importData.systemStore) localStorage.setItem('system-tree-storage', importData.systemStore);
+    if (importData.settingsStore) localStorage.setItem('settings-storage', importData.settingsStore);
+    
+    alert('数据导入成功，系统将重新加载！');
+    window.location.reload();
   };
 
   const handleClearAll = () => {
@@ -230,6 +268,28 @@ export const ProfilePage = () => {
                 </div>
               </div>
             </button>
+
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full glass-button rounded-2xl p-4 flex items-center justify-between group active:scale-[0.98]"
+            >
+              <div className="flex items-center space-x-3">
+                <div className="p-2.5 bg-green-50/80 dark:bg-green-900/30 rounded-xl text-green-600 dark:text-green-400 shadow-sm transition-colors">
+                  <Upload size={20} />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium text-zinc-900 dark:text-zinc-100">导入数据备份</div>
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400">从 JSON 文件恢复系统数据</div>
+                </div>
+              </div>
+            </button>
+            <input 
+              type="file" 
+              accept=".json" 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleImport} 
+            />
             
             <button 
               onClick={() => setShowClearConfirm(true)}
@@ -284,6 +344,51 @@ export const ProfilePage = () => {
                   className="flex-1 py-3.5 rounded-2xl font-medium bg-red-600 text-white hover:bg-red-500 shadow-[0_8px_20px_rgba(220,38,38,0.25)] transition-all active:scale-95"
                 >
                   确认清除
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Import Confirmation Dialog */}
+      <AnimatePresence>
+        {showImportConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/40 backdrop-blur-md transition-colors"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="glass-card bg-white/90 dark:bg-zinc-900/90 p-8 w-full max-w-sm shadow-[0_20px_60px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
+            >
+              <div className="w-14 h-14 bg-green-100/80 dark:bg-green-900/30 rounded-full flex items-center justify-center text-green-500 mb-6 shadow-inner mx-auto">
+                <Upload size={28} />
+              </div>
+              <h3 className="text-xl font-semibold mb-3 text-zinc-900 dark:text-zinc-100 text-center">覆盖现有数据？</h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-8 text-center leading-relaxed">
+                导入操作将使用备份文件覆盖你当前的专注记录、国策树和所有设置。此操作不可撤销，确定要继续吗？
+              </p>
+              <div className="flex space-x-3">
+                <button 
+                  onClick={() => {
+                    setShowImportConfirm(false);
+                    setImportData(null);
+                  }}
+                  className="flex-1 py-3.5 rounded-2xl font-medium text-zinc-600 dark:text-zinc-300 bg-zinc-100/80 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  取消
+                </button>
+                <button 
+                  onClick={confirmImport}
+                  className="flex-1 py-3.5 rounded-2xl font-medium bg-green-600 text-white hover:bg-green-500 shadow-[0_8px_20px_rgba(34,197,94,0.25)] transition-all active:scale-95"
+                >
+                  确认导入
                 </button>
               </div>
             </motion.div>
