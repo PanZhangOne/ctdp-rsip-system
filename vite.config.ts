@@ -1,7 +1,7 @@
 /// <reference types="vite-plugin-pwa/client" />
+import path from "path";
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react'
-import tsconfigPaths from "vite-tsconfig-paths";
 import { VitePWA } from 'vite-plugin-pwa';
 
 // https://vite.dev/config/
@@ -60,7 +60,11 @@ export default defineConfig({
           }
         ]
       }
-    }),
-    tsconfigPaths()
+    })
   ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
 })

@@ -20,7 +20,7 @@ interface GoalsPageProps {
 }
 
 export const GoalsPage: React.FC<GoalsPageProps> = ({ onClose, goalSummaries }) => {
-  const { goals, projects, tasks, addGoal, addProject, addTask, deleteGoal, deleteProject, deleteTask } = useGoalStore();
+  const { goals, projects, tasks, createGoal, createProject, createTask, deleteGoal, deleteProject, deleteTask } = useGoalStore();
   
   const [newGoalTitle, setNewGoalTitle] = useState('');
   const [newProjectTitle, setNewProjectTitle] = useState('');
@@ -31,21 +31,21 @@ export const GoalsPage: React.FC<GoalsPageProps> = ({ onClose, goalSummaries }) 
 
   const handleCreateGoal = () => {
     if (newGoalTitle.trim()) {
-      addGoal(newGoalTitle.trim());
+      createGoal(newGoalTitle.trim());
       setNewGoalTitle('');
     }
   };
 
   const handleCreateProject = (goalId: string) => {
     if (newProjectTitle.trim()) {
-      addProject(goalId, newProjectTitle.trim());
+      createProject(goalId, newProjectTitle.trim());
       setNewProjectTitle('');
     }
   };
 
   const handleCreateTask = (projectId: string) => {
     if (newTaskTitle.trim()) {
-      addTask(projectId, newTaskTitle.trim());
+      createTask(projectId, newTaskTitle.trim());
       setNewTaskTitle('');
     }
   };
