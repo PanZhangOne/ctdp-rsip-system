@@ -22,16 +22,16 @@ const PlaceholderPage = ({ title }: { title: string }) => (
 const Navigation = () => {
   return (
     <div className="fixed bottom-0 left-0 right-0 glass-panel border-x-0 border-b-0 pb-safe z-30 transition-colors rounded-t-[2.5rem]">
-      <div className="flex justify-around items-center h-[88px] px-6 max-w-md mx-auto pb-4">
+      <div className="flex justify-around items-center h-[72px] px-6 max-w-md mx-auto">
         <NavLink
           to="/"
           className={({ isActive }) => cn(
             "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-300",
-            isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
+            isActive ? "text-zinc-900 dark:text-white scale-[1.15]" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
           {({ isActive }) => (
-            <Timer size={26} strokeWidth={isActive ? 2 : 1.5} />
+            <Timer size={24} strokeWidth={isActive ? 2 : 1.5} />
           )}
         </NavLink>
         
@@ -39,11 +39,11 @@ const Navigation = () => {
           to="/system"
           className={({ isActive }) => cn(
             "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-300",
-            isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
+            isActive ? "text-zinc-900 dark:text-white scale-[1.15]" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
           {({ isActive }) => (
-            <LayoutDashboard size={26} strokeWidth={isActive ? 2 : 1.5} />
+            <LayoutDashboard size={24} strokeWidth={isActive ? 2 : 1.5} />
           )}
         </NavLink>
 
@@ -51,11 +51,11 @@ const Navigation = () => {
           to="/policies"
           className={({ isActive }) => cn(
             "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-300",
-            isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
+            isActive ? "text-zinc-900 dark:text-white scale-[1.15]" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
           {({ isActive }) => (
-            <ScrollText size={26} strokeWidth={isActive ? 2 : 1.5} />
+            <ScrollText size={24} strokeWidth={isActive ? 2 : 1.5} />
           )}
         </NavLink>
 
@@ -63,11 +63,11 @@ const Navigation = () => {
           to="/profile"
           className={({ isActive }) => cn(
             "flex flex-col items-center justify-center w-16 h-full space-y-1 transition-all duration-300",
-            isActive ? "text-zinc-900 dark:text-white scale-110" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
+            isActive ? "text-zinc-900 dark:text-white scale-[1.15]" : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-400"
           )}
         >
           {({ isActive }) => (
-            <User size={26} strokeWidth={isActive ? 2 : 1.5} />
+            <User size={24} strokeWidth={isActive ? 2 : 1.5} />
           )}
         </NavLink>
       </div>

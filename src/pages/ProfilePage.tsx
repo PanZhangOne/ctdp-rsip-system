@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Trash2, Moon, Sun, Monitor, AlertTriangle, Activity, CheckCircle2, PieChart, Target, Flame } from 'lucide-react';
+import { Download, Trash2, Moon, Sun, Monitor, AlertTriangle, Activity, CheckCircle2, PieChart, Target, Flame, ChevronRight } from 'lucide-react';
 import { useSettingsStore, ThemeMode } from '../store/useSettingsStore';
 import { useFocusStore } from '../store/useFocusStore';
 import { usePolicyStore } from '../store/usePolicyStore';
@@ -12,8 +12,10 @@ import { formatTime } from '../utils/formatTime';
 import { HourlyFocusChart } from '../components/analytics/HourlyFocusChart';
 import { UrgeScatterChart } from '../components/analytics/UrgeScatterChart';
 import { SystemCorrelationChart } from '../components/analytics/SystemCorrelationChart';
+import { GoalsPage } from './GoalsPage';
 
 export const ProfilePage = () => {
+  const [showGoalsPage, setShowGoalsPage] = useState(false);
   const { theme, setTheme } = useSettingsStore();
   const { historySessions, historyUrges, chains } = useFocusStore();
   const { policies } = usePolicyStore();
@@ -44,7 +46,8 @@ export const ProfilePage = () => {
     if (meta.taskId) {
       const task = taskById.get(meta.taskId);
       if (!task) return undefined;
-      return projectById.get(task.projectId)?.goalId;
+      const proj = projectById.get(task.projectId);
+      return proj ? proj.goalId : undefined;
     }
     return undefined;
   };
@@ -169,63 +172,24 @@ export const ProfilePage = () => {
         </section>
 
         <section>
-          <h2 className="text-lg font-semibold mb-4 flex items-center"><Target size={20} className="mr-2 text-blue-500" /> 目标复盘</h2>
-          {goalSummaries.length === 0 ? (
-            <div className="glass-card p-6 text-zinc-500 dark:text-zinc-400">
-              <div className="font-medium text-zinc-700 dark:text-zinc-200 mb-1">还没有目标体系</div>
-              <div className="text-sm">去专注页点击“关联目标”，创建 Goal / Project / Task，并把专注与国策绑定到同一个目标上。</div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold flex items-center"><Target size={20} className="mr-2 text-blue-500" /> 目标管理</h2>
+          </div>
+          <button 
+            onClick={() => setShowGoalsPage(true)}
+            className="w-full glass-button rounded-2xl p-4 flex items-center justify-between group active:scale-[0.98]"
+          >
+            <div className="flex items-center space-x-3">
+              <div className="p-2.5 bg-blue-50/80 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400 shadow-sm transition-colors">
+                <Target size={20} />
+              </div>
+              <div className="text-left">
+                <div className="font-medium text-zinc-900 dark:text-zinc-100">管理目标体系与复盘</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400">管理 Goal / Project / Task 及查看复盘数据</div>
+              </div>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {goalSummaries
-                .sort((a, b) => (b.focusSeconds + b.litCount * 60) - (a.focusSeconds + a.litCount * 60))
-                .map(({ goal, focusSeconds, focusSessions, collapseCount, litCount, recentLitCount }) => (
-                  <div key={goal.id} className="glass-card p-5">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400 font-mono mb-1">GOAL</div>
-                        <div className="text-lg font-semibold">{goal.title}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-xs text-zinc-500 dark:text-zinc-400">总专注</div>
-                        <div className="text-lg font-medium tabular-nums">{formatTime(focusSeconds)}</div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-3 gap-3">
-                      <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3">
-                        <div className="flex items-center space-x-2 text-zinc-500 dark:text-zinc-400 text-xs mb-1">
-                          <Activity size={14} />
-                          <span>专注次数</span>
-                        </div>
-                        <div className="text-xl font-medium tabular-nums">{focusSessions}</div>
-                      </div>
-
-                      <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3 relative overflow-hidden">
-                        <div className="flex items-center space-x-2 text-zinc-500 dark:text-zinc-400 text-xs mb-1">
-                          <CheckCircle2 size={14} className="text-green-500" />
-                          <span>累计点亮</span>
-                        </div>
-                        <div className="text-xl font-medium tabular-nums">{litCount}</div>
-                        {recentLitCount > 0 && (
-                          <div className="absolute right-2 bottom-2 text-[10px] font-medium text-green-600 bg-green-100/80 px-1.5 py-0.5 rounded-md">
-                            近7天 +{recentLitCount}
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="bg-white/40 dark:bg-black/20 border border-white/40 dark:border-white/10 rounded-2xl p-3">
-                        <div className="flex items-center space-x-2 text-zinc-500 dark:text-zinc-400 text-xs mb-1">
-                          <Flame size={14} className={collapseCount > 0 ? "text-orange-500" : "text-zinc-400"} />
-                          <span>崩溃次数</span>
-                        </div>
-                        <div className={cn("text-xl font-medium tabular-nums", collapseCount > 0 ? "text-orange-500" : "")}>{collapseCount}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
+            <ChevronRight className="text-zinc-400 group-hover:text-zinc-600 transition-colors" />
+          </button>
         </section>
 
         <section>
@@ -324,6 +288,15 @@ export const ProfilePage = () => {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showGoalsPage && (
+          <GoalsPage 
+            onClose={() => setShowGoalsPage(false)} 
+            goalSummaries={goalSummaries}
+          />
         )}
       </AnimatePresence>
     </div>

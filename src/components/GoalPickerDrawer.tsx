@@ -95,33 +95,12 @@ export const GoalPickerDrawer: React.FC<GoalPickerDrawerProps> = ({ isOpen, onCl
             </div>
 
             <div className="space-y-6">
-              <div className="glass-card p-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium">当前选择</div>
-                  <button onClick={clear} className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300">
-                    清空
-                  </button>
-                </div>
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-500">目标</span>
-                    <span className="font-medium">{selectedGoal?.title || '未选择'}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-500">项目</span>
-                    <span className="font-medium">{selectedProject?.title || '未选择'}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-zinc-500">任务</span>
-                    <span className="font-medium">{selectedTask?.title || '未选择'}</span>
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-3">
-                <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">目标</div>
+                <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">选择目标</div>
                 {goals.length === 0 ? (
-                  <div className="glass-card p-4 text-sm text-zinc-500">还没有目标，先创建一个。</div>
+                  <div className="glass-card p-4 text-sm text-zinc-500">
+                    请前往“我的 - 目标管理”页面创建目标。
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {goals.map(g => (
@@ -141,28 +120,13 @@ export const GoalPickerDrawer: React.FC<GoalPickerDrawerProps> = ({ isOpen, onCl
                     ))}
                   </div>
                 )}
-
-                <div className="flex items-center space-x-2">
-                  <input
-                    value={newGoalTitle}
-                    onChange={(e) => setNewGoalTitle(e.target.value)}
-                    placeholder="新目标名称"
-                    className="flex-1 bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors backdrop-blur-md"
-                  />
-                  <button onClick={handleCreateGoal} className="glass-button rounded-xl px-4 py-3">
-                    <Plus size={18} />
-                  </button>
-                </div>
               </div>
 
-              {value.goalId && (
+              {value.goalId && filteredProjects.length > 0 && (
                 <div className="space-y-3">
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">项目</div>
-                  {filteredProjects.length === 0 ? (
-                    <div className="glass-card p-4 text-sm text-zinc-500">这个目标下还没有项目。</div>
-                  ) : (
-                    <div className="space-y-2">
-                      {filteredProjects.map(p => (
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">选择项目</div>
+                  <div className="space-y-2">
+                    {filteredProjects.map(p => (
                         <button
                           key={p.id}
                           onClick={() => onChange({ goalId: value.goalId, projectId: p.id })}
@@ -178,30 +142,14 @@ export const GoalPickerDrawer: React.FC<GoalPickerDrawerProps> = ({ isOpen, onCl
                         </button>
                       ))}
                     </div>
-                  )}
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      value={newProjectTitle}
-                      onChange={(e) => setNewProjectTitle(e.target.value)}
-                      placeholder="新项目名称"
-                      className="flex-1 bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors backdrop-blur-md"
-                    />
-                    <button onClick={handleCreateProject} className="glass-button rounded-xl px-4 py-3">
-                      <Plus size={18} />
-                    </button>
-                  </div>
                 </div>
               )}
 
-              {value.projectId && (
+              {value.projectId && filteredTasks.length > 0 && (
                 <div className="space-y-3">
-                  <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">任务</div>
-                  {filteredTasks.length === 0 ? (
-                    <div className="glass-card p-4 text-sm text-zinc-500">这个项目下还没有任务。</div>
-                  ) : (
-                    <div className="space-y-2">
-                      {filteredTasks.map(t => (
+                  <div className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">选择任务</div>
+                  <div className="space-y-2">
+                    {filteredTasks.map(t => (
                         <button
                           key={t.id}
                           onClick={() => onChange({ goalId: value.goalId, projectId: value.projectId, taskId: t.id })}
@@ -217,28 +165,15 @@ export const GoalPickerDrawer: React.FC<GoalPickerDrawerProps> = ({ isOpen, onCl
                         </button>
                       ))}
                     </div>
-                  )}
-
-                  <div className="flex items-center space-x-2">
-                    <input
-                      value={newTaskTitle}
-                      onChange={(e) => setNewTaskTitle(e.target.value)}
-                      placeholder="新任务名称"
-                      className="flex-1 bg-white/50 dark:bg-black/30 border border-zinc-200/50 dark:border-zinc-700/50 rounded-xl px-4 py-3 focus:outline-none focus:border-blue-500 transition-colors backdrop-blur-md"
-                    />
-                    <button onClick={handleCreateTask} className="glass-button rounded-xl px-4 py-3">
-                      <Plus size={18} />
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={onClose}
-                    className="w-full py-4 rounded-2xl bg-blue-600/90 text-white font-semibold text-lg hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/20"
-                  >
-                    完成关联
-                  </button>
                 </div>
               )}
+
+              <button
+                onClick={onClose}
+                className="w-full py-4 rounded-2xl bg-blue-600/90 text-white font-semibold text-lg hover:bg-blue-500 transition-colors shadow-lg shadow-blue-900/20"
+              >
+                完成选择
+              </button>
             </div>
           </motion.div>
         </>

@@ -704,10 +704,30 @@ export const FocusPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                
-                {/* Future settings can go here */}
-                
+
+                <div>
+                  <label className="block text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">默认专注链长度目标</label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {[3, 5, 7, 10].map(c => (
+                      <button
+                        key={c}
+                        onClick={() => settings.setDefaultChainCount(c)}
+                        className={cn(
+                          "py-3 rounded-xl border text-sm transition-colors",
+                          settings.defaultChainCount === c
+                            ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-900 text-blue-700 dark:text-blue-400 font-medium"
+                            : "bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                        )}
+                      >
+                        {c} 次
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-zinc-400 mt-2">当达到此连击数时，系统会给予特殊反馈。</p>
+                </div>
               </div>
+                
+              {/* Future settings can go here */}
             </motion.div>
           </>
         )}

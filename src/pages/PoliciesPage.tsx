@@ -7,6 +7,7 @@ import { useGoalStore } from '../store/useGoalStore';
 import { cn } from '../components/DelayDrawer';
 
 const PolicyCard = ({ policy, onEdit, onDelete, onToggle, logs = [] }: { 
+  key?: React.Key,
   policy: Policy, 
   onEdit?: (p: Policy) => void,
   onDelete?: (id: string) => void,
@@ -122,7 +123,11 @@ const PolicyCard = ({ policy, onEdit, onDelete, onToggle, logs = [] }: {
   );
 };
 
-const TemplateCard = ({ template, onAdopt }: { template: Policy, onAdopt: (id: string) => void }) => {
+const TemplateCard = ({ template, onAdopt }: { 
+  key?: React.Key,
+  template: Policy, 
+  onAdopt: (id: string) => void 
+}) => {
   const store = usePolicyStore();
   const isAdopted = store.policies.some(p => p.title === template.title);
 

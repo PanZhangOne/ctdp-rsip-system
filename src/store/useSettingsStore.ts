@@ -21,6 +21,8 @@ interface SettingsState {
   setTheme: (theme: ThemeMode) => void;
   defaultFocusDuration: number;
   setDefaultFocusDuration: (duration: number) => void;
+  defaultChainCount: number;
+  setDefaultChainCount: (count: number) => void;
 }
 
 export const useSettingsStore = create<SettingsState>()(
@@ -30,6 +32,8 @@ export const useSettingsStore = create<SettingsState>()(
       setTheme: (theme) => set({ theme }),
       defaultFocusDuration: 60 * 60,
       setDefaultFocusDuration: (duration) => set({ defaultFocusDuration: duration }),
+      defaultChainCount: 3,
+      setDefaultChainCount: (count) => set({ defaultChainCount: count }),
     }),
     {
       name: 'settings-storage',
